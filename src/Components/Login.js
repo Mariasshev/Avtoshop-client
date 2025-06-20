@@ -1,120 +1,244 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export function Login() {
+    const [regFullName, setRegFullName] = useState("");
+    const [regPhone, setRegPhone] = useState("");
+    const [regEmail, setRegEmail] = useState("");
+    const [regPassword, setRegPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [regConfirm, setRegConfirm] = useState("");
+    const [regError, setRegError] = useState("");
+    const [regSuccess, setRegSuccess] = useState("");
+
+    const [loginEmail, setLoginEmail] = useState("");
+    const [loginPassword, setLoginPassword] = useState("");
+    const [loginError, setLoginError] = useState("");
+    const [loginSuccess, setLoginSuccess] = useState("");
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(prev => !prev);
+    };
+
+
+    const navigate = useNavigate();
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        setRegError("");
+        setRegSuccess("");
+
+        if (!regFullName || !regPhone || !regEmail || !regPassword || !regConfirm) {
+            setRegError("All fields are required");
+            return;
+        }
+
+        if (regPassword !== regConfirm) {
+            setRegError("Passwords do not match");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: regFullName,
+                    phoneNumber: regPhone,
+                    email: regEmail,
+                    password: regPassword,
+                }),
+            });
+
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Registration failed");
+            }
+
+            const data = await response.json();
+            setRegSuccess(`Welcome, ${data.name}!`);
+
+            setTimeout(() => navigate("/"), 1000); //redirect to main page
+        } catch (err) {
+            setRegError(err.message);
+        }
+    };
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoginError("");
+        setLoginSuccess("");
+
+        if (!loginEmail || !loginPassword) {
+            setLoginError("Please enter email and password");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: loginEmail,
+                    password: loginPassword,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Login failed");
+            }
+
+            const data = await response.json();
+            setLoginSuccess(`Welcome, ${data.name}!`);
+
+            setTimeout(() => navigate("/"), 1000); //redirect to main page
+        } catch (err) {
+            setLoginError(err.message);
+        }
+    };
+
     return (
         <div className="container form-container py-5">
-            {/* Вкладки */}
-            <ul className="nav nav-tabs mb-3">
-                <li className="nav-item">
-                    <a className="nav-link dm-sans-medium ft-16 active" data-bs-toggle="tab" href="#sign-in">Sign in</a>
+            <ul className="nav nav-tabs mb-3" role="tablist">
+                <li className="nav-item" role="presentation">
+                    <button className="nav-link dm-sans-medium ft-16 active" id="sign-in-tab" data-bs-toggle="tab" data-bs-target="#sign-in" type="button" role="tab">Sign in</button>
                 </li>
-                <li className="nav-item">
-                    <a className="nav-link dm-sans-medium ft-16" data-bs-toggle="tab" href="#register">Register</a>
+                <li className="nav-item" role="presentation">
+                    <button className="nav-link dm-sans-medium ft-16" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Register</button>
                 </li>
             </ul>
 
             <div className="tab-content">
-                {/* Вкладка Sign In */}
+                {/* Sign In */}
                 <div className="tab-pane fade show active" id="sign-in">
-                    <form>
-                        <div className="form-floating mb-3">
-                            <input type="email" className="form-control" />
-                            <label htmlFor="floatingInput2">Email</label>
+                    <form onSubmit={handleLogin}>
+                        {/* Email Input */}
+                        <div className="mb-3 form-floating">
+                            <input
+                                type="email"
+                                className="form-control"
+                                id="loginEmail"
+                                placeholder="Email"
+                                value={loginEmail}
+                                onChange={(e) => setLoginEmail(e.target.value)}
+                            />
+                            <label htmlFor="loginEmail" className="label-txt">Email</label>
                         </div>
                         <div className="mb-3 position-relative form-floating">
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 className="form-control"
-                                id="floatingPassword"
+                                id="loginPassword"
+                                placeholder="Password"
+                                value={loginPassword}
+                                onChange={(e) => setLoginPassword(e.target.value)}
                             />
-                            <label htmlFor="floatingPassword">Password</label>
+                            <label htmlFor="loginPassword" className="label-txt">Password</label>
 
                             <span
                                 className="position-absolute end-0 top-50 translate-middle-y me-3"
                                 style={{ cursor: 'pointer' }}
-                                onClick={togglePassword}
+                                onClick={togglePasswordVisibility}
                             >
-        <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
-      </span>
+                            <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
+                            </span>
                         </div>
 
-                        <div className="form-check mb-3">
-                            <div className="row">
-                                <div className="col-6">
-                                    <input type="checkbox" className="form-check-input" />
-                                    <label className="form-check-label dm-sans-regular ft-15">Keep me signed in</label>
-                                </div>
-                                <div className="col-6 text-end">
-                                    <a href="#" className="dm-sans-medium ft-15 text-decoration-underline">Lost Your Password?</a>
-                                </div>
-                            </div>
-                        </div>
+                        {loginError && <div className="text-danger mb-3">{loginError}</div>}
+                        {loginSuccess && <div className="text-success mb-3">{loginSuccess}</div>}
 
                         <div className="d-grid mb-3">
                             <button type="submit" className="btn btn-custom btn-block dm-sans-medium ft-15">Login</button>
                         </div>
-
-                        <div className="or-divider dm-sans-regular ft-16">
-                            <span>OR</span>
-                        </div>
-
-                        <div className="row gx-1">
-                            <div className="col-6 d-grid mb-3">
-                                <button type="button" className="btn btn-outline-primary social-btn social-btn-facebook dm-sans-regular ft-14 py-3">
-                                    <i className="bi bi-facebook"></i> Login with Facebook
-                                </button>
-                            </div>
-                            <div className="col-6 d-grid mb-3">
-                                <button type="button" className="btn social-btn social-btn-google dm-sans-regular ft-14 py-3">
-                                    <i className="bi bi-google"></i> Login with Google
-                                </button>
-                            </div>
-                        </div>
                     </form>
                 </div>
 
-                {/* Вкладка Register */}
+                {/* Register */}
                 <div className="tab-pane fade" id="register">
-                    <form>
+                    <form onSubmit={handleRegister}>
                         <div className="form-floating mb-3">
-                            <input type="text" className="form-control" />
-                            <label>Full Name</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="regFullName"
+                                placeholder="Full Name"
+                                value={regFullName}
+                                onChange={(e) => setRegFullName(e.target.value)}
+                            />
+                            <label htmlFor="regFullName" className="label-txt">Full Name</label>
                         </div>
 
                         <div className="form-floating mb-3">
-                            <input type="text" className="form-control" />
-                            <label>Phone number</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                id="regPhone"
+                                placeholder="Phone Number"
+                                value={regPhone}
+                                onChange={(e) => setRegPhone(e.target.value)}
+                            />
+                            <label htmlFor="regPhone" className="label-txt">Phone Number</label>
                         </div>
 
                         <div className="form-floating mb-3">
-                            <input type="email" className="form-control" />
-                            <label>Email</label>
+                            <input
+                                type="email"
+                                className="form-control"
+                                id="regEmail"
+                                placeholder="Email"
+                                value={regEmail}
+                                onChange={(e) => setRegEmail(e.target.value)}
+                            />
+                            <label htmlFor="regEmail" className="label-txt">Email</label>
                         </div>
 
+                        {/* Password */}
                         <div className="mb-3 position-relative form-floating">
-                            <input type="password" className="form-control" />
-                            <label>Password</label>
-                            <span className="position-absolute end-0 top-50 translate-middle-x me-2">
-                                <i className="bi bi-eye-slash"></i>
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                className="form-control"
+                                id="regPassword"
+                                placeholder="Password"
+                                value={regPassword}
+                                onChange={(e) => setRegPassword(e.target.value)}
+                            />
+                            <label htmlFor="regPassword" className="label-txt">Password</label>
+                            <span
+                                className="position-absolute end-0 top-50 translate-middle-y me-3"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setShowPassword(prev => !prev)}
+                            >
+                            <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
                             </span>
                         </div>
 
+                        {/* Confirm Password */}
                         <div className="mb-3 position-relative form-floating">
-                            <input type="password" className="form-control" />
-                            <label>Confirm Password</label>
-                            <span className="position-absolute end-0 top-50 translate-middle-x me-2">
-                                <i className="bi bi-eye-slash"></i>
+                            <input
+                                type={showConfirm ? 'text' : 'password'}
+                                className="form-control"
+                                id="regConfirm"
+                                placeholder="Confirm Password"
+                                value={regConfirm}
+                                onChange={(e) => setRegConfirm(e.target.value)}
+                            />
+                            <label htmlFor="regConfirm" className="label-txt">Confirm Password</label>
+                            <span
+                                className="position-absolute end-0 top-50 translate-middle-y me-3"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => setShowConfirm(prev => !prev)}
+                            >
+                            <i className={`bi ${showConfirm ? 'bi-eye' : 'bi-eye-slash'}`}></i>
                             </span>
                         </div>
 
-                        <div className="form-check mb-3">
-                            <input type="checkbox" className="form-check-input" />
-                            <label className="form-check-label dm-sans-regular ft-15">
-                                I agree to the <a href="#" className="text-decoration-underline">Terms & Conditions</a>
-                            </label>
-                        </div>
+                        {regError && <div className="text-danger mb-3">{regError}</div>}
+                        {regSuccess && <div className="text-success mb-3">{regSuccess}</div>}
 
                         <div className="d-grid">
                             <button type="submit" className="btn btn-custom btn-block dm-sans-medium ft-15">Register</button>
