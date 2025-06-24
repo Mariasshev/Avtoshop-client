@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { AuthContext } from "./AuthContext";
+import { LoadingOverlay } from "../Components/LoadingOverlay";
 
 
 export function Login() {
+    const [isLoading, setIsLoading] = useState(false);
+
     const { setIsAuth } = useContext(AuthContext);
     const [regFullName, setRegFullName] = useState("");
     const [regPhone, setRegPhone] = useState("");
@@ -30,89 +33,88 @@ export function Login() {
     const navigate = useNavigate();
 
     const handleRegister = async (e) => {
-        e.preventDefault();
-        setRegError("");
-        setRegSuccess("");
+  e.preventDefault();
+  setRegError("");
+  setRegSuccess("");
 
-        if (!regFullName || !regPhone || !regEmail || !regPassword || !regConfirm) {
-            setRegError("All fields are required");
-            return;
-        }
+  // Включаем индикатор
+  setIsLoading(true);
+  
+  // Валидация
+  if (!regFullName || !regPhone || !regEmail || !regPassword || !regConfirm) {
+    setRegError("All fields are required");
+    setIsLoading(false);
+    return;
+  }
+  if (regPassword !== regConfirm) {
+    setRegError("Passwords do not match");
+    setIsLoading(false);
+    return;
+  }
 
-        if (regPassword !== regConfirm) {
-            setRegError("Passwords do not match");
-            return;
-        }
+  try {
+    const response = await fetch(/* ... */);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Registration failed");
+    }
+    const data = await response.json();
+    // Сохраняем токен и авторизуем
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("name", data.name);
+    setIsAuth(true);
+    setRegSuccess(`Welcome, ${data.name}!`);
 
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: regFullName,
-                    phoneNumber: regPhone,
-                    email: regEmail,
-                    password: regPassword,
-                }),
-            });
+    // Переход
+    setTimeout(() => navigate("/"), 1000);
+  } catch (err) {
+    setRegError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Registration failed");
-            }
-
-            const data = await response.json();
-            setRegSuccess(`Welcome, ${data.name}!`);
-
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("name", data.name);
-            setIsAuth(true);
-
-
-            setTimeout(() => navigate("/"), 1000); //redirect to main page
-        } catch (err) {
-            setRegError(err.message);
-        }
-    };
 
     const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoginError("");
-        setLoginSuccess("");
+  e.preventDefault();
+  setLoginError("");
+  setLoginSuccess("");
+  setIsLoading(true); // <--- включаем спиннер
 
-        if (!loginEmail || !loginPassword) {
-            setLoginError("Please enter email and password");
-            return;
-        }
+  if (!loginEmail || !loginPassword) {
+    setLoginError("Please enter email and password");
+    setIsLoading(false); // <--- выключаем при ошибке
+    return;
+  }
 
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: loginEmail,
-                    password: loginPassword,
-                }),
-            });
+  try {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+    });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Login failed");
-            }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Login failed");
+    }
 
-            const data = await response.json();
-            setLoginSuccess(`Welcome, ${data.name}!`);
+    const data = await response.json();
+    setLoginSuccess(`Welcome, ${data.name}!`);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("name", data.name);
+    setIsAuth(true);
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("name", data.name);
-            setIsAuth(true);
+    setTimeout(() => {
+      navigate("/");
+      setIsLoading(false); // <--- выключаем после редиректа
+    }, 1000);
+  } catch (err) {
+    setLoginError(err.message);
+    setIsLoading(false); // <--- выключаем при ошибке
+  }
+};
 
-            setTimeout(() => navigate("/"), 1000); //redirect to main page
-        } catch (err) {
-            setLoginError(err.message);
-        }
-    };
 
     return (
         <div className="container form-container py-5">
@@ -257,6 +259,9 @@ export function Login() {
                         </div>
                     </form>
                 </div>
+
+                {isLoading && <LoadingOverlay text="Please wait..." />}
+
             </div>
         </div>
     );

@@ -3,7 +3,7 @@ import { Tabs, Tab } from 'react-bootstrap';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Components/AuthContext';
-
+import { LoadingOverlay } from "../Components/LoadingOverlay";
 
 export function ProfilePage() {
   const [key, setKey] = useState('profile');
@@ -108,13 +108,8 @@ export function ProfilePage() {
 
           </Tabs>
 
-          {isLoggingOut && (
-          <div className="logout-overlay d-flex justify-content-center align-items-center">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Logging out...</span>
-            </div>
-          </div>
-        )}
+          {isLoggingOut && <LoadingOverlay text="Logging out..." />}
+          
         </div>
       </main>
     </div>
