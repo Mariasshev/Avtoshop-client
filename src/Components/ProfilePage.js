@@ -9,19 +9,27 @@ export function ProfilePage() {
   const [key, setKey] = useState('profile');
 
   const { setIsAuth } = useContext(AuthContext);
-const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-const handleLogout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('name');
+  const handleLogout = () => {
+  setIsLoggingOut(true);
+    // Удаляем токен и статус авторизации
+  localStorage.removeItem("token");
+  localStorage.removeItem("name");
   setIsAuth(false);
-  navigate('/login-form');
+  
+  // Переход через 1.5 секунды
+  setTimeout(() => {
+    navigate("/login-form");
+    setIsLoggingOut(false);
+  }, 1500);
 };
+
 
   return (
     <div className="page-wrapper d-flex flex-column min-vh-100">
       <main className="flex-grow-1">
-
         <div className="container-lg mt-5">
           <div className="text-center mb-3 mb-md-5 d-none d-md-block">
             <h2 className="fw-bold h2 mb-1">Personal account</h2>
@@ -69,11 +77,13 @@ const handleLogout = () => {
                       </div>
                       <div className="mt-4 text-center text-md-end">
                         <button
+                          type="button"
                           className="btn btn-danger px-3 py-2 fw-regular me-1"
                           onClick={handleLogout}
                         >
                           <i className="bi bi-box-arrow-left me-1"></i> Logout
-                      </button>
+                        </button>
+
                         <button className="btn btn-primary px-3 py-2 fw-semibold">Save changes</button>
                       </div>
                     </form>
@@ -97,6 +107,14 @@ const handleLogout = () => {
 
 
           </Tabs>
+
+          {isLoggingOut && (
+          <div className="logout-overlay d-flex justify-content-center align-items-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Logging out...</span>
+            </div>
+          </div>
+        )}
         </div>
       </main>
     </div>
