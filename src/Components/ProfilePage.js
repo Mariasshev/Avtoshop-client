@@ -1,8 +1,22 @@
 import { useState } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
+import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../Components/AuthContext';
+
 
 export function ProfilePage() {
   const [key, setKey] = useState('profile');
+
+  const { setIsAuth } = useContext(AuthContext);
+const navigate = useNavigate();
+
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('name');
+  setIsAuth(false);
+  navigate('/login-form');
+};
 
   return (
     <div className="page-wrapper d-flex flex-column min-vh-100">
@@ -54,7 +68,12 @@ export function ProfilePage() {
                         </div>
                       </div>
                       <div className="mt-4 text-center text-md-end">
-                        <button className="btn btn-danger px-3 py-2 fw-regular me-1"><i class="bi bi-box-arrow-left me-1"></i> Logout</button>
+                        <button
+                          className="btn btn-danger px-3 py-2 fw-regular me-1"
+                          onClick={handleLogout}
+                        >
+                          <i className="bi bi-box-arrow-left me-1"></i> Logout
+                      </button>
                         <button className="btn btn-primary px-3 py-2 fw-semibold">Save changes</button>
                       </div>
                     </form>
