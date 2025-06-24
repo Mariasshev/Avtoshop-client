@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext  } from "react";
 import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { AuthContext } from "./AuthContext";
+
 
 export function Login() {
+    const { setIsAuth } = useContext(AuthContext);
     const [regFullName, setRegFullName] = useState("");
     const [regPhone, setRegPhone] = useState("");
     const [regEmail, setRegEmail] = useState("");
@@ -62,6 +65,11 @@ export function Login() {
             const data = await response.json();
             setRegSuccess(`Welcome, ${data.name}!`);
 
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("name", data.name);
+            setIsAuth(true);
+
+
             setTimeout(() => navigate("/"), 1000); //redirect to main page
         } catch (err) {
             setRegError(err.message);
@@ -95,6 +103,10 @@ export function Login() {
 
             const data = await response.json();
             setLoginSuccess(`Welcome, ${data.name}!`);
+
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("name", data.name);
+            setIsAuth(true);
 
             setTimeout(() => navigate("/"), 1000); //redirect to main page
         } catch (err) {

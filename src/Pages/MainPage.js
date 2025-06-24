@@ -15,6 +15,7 @@ import CarouselVideoExample from "../Components/video-slider";
 
 export const MainPage = () => (
     <>
+    
         <HeaderDark/>
         <CarouselVideoExample/>
         <Brands/>

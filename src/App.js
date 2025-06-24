@@ -11,6 +11,8 @@ import 'boxicons/css/boxicons.min.css';
 import "slick-carousel/slick/slick-theme.css";
 import './App.css';
 
+import { AuthProvider } from './Components/AuthContext';
+//import {useState } from 'react';
 import { MainPage } from "./Pages/MainPage";
 import { CarsList } from "./Pages/Cars-list";
 import { CarCard } from "./Pages/Car-card";
@@ -24,61 +26,69 @@ import { Service } from "./Pages/Service";
 import { AboutUs } from "./Pages/AboutUs";
 import { Contacts } from "./Pages/Contacts";
 import { LoginForm } from "./Pages/LoginForm";
+import { Profile } from './Pages/Profile';
 
 function App() {
+
     useEffect(() => {
         AOS.init({
             duration: 1000, // Настройка продолжительности анимации (по умолчанию 400ms)
         });
     }, []);
 
-    return (
+
+  return (
+    <AuthProvider>
         <BrowserRouter>
-            <Routes>
-                {/* Redirect from root path to index */}
-                <Route path="/" element={<Navigate to="index" />} />
+                <Routes>
+                    {/* Redirect from root path to index */}
+                    <Route path="/" element={<Navigate to="index" />} />
 
-                {/* Главная страница - index */}
-                <Route path="index" element={<MainPage />} />
+                    {/* Главная страница - index */}
+                    <Route path="index" element={<MainPage />} />
 
-                {/* Cars-list */}
-                <Route path="cars-list" element={<CarsList />} />
+                    {/* Cars-list */}
+                    <Route path="cars-list" element={<CarsList />} />
 
-                {/* Car-card */}
-                <Route path="car-card" element={<CarCard />} />
+                    {/* Car-card */}
+                    <Route path="car-card" element={<CarCard />} />
 
-                {/* Blog */}
-                <Route path="blog" element={<Blog />} />
+                    {/* Blog */}
+                    <Route path="blog" element={<Blog />} />
 
-                {/* Blog-page */}
-                <Route path="blog-page" element={<BlogPage />} />
+                    {/* Blog-page */}
+                    <Route path="blog-page" element={<BlogPage />} />
 
-                {/* Shop */}
-                <Route path="shop" element={<Shop />} />
+                    {/* Shop */}
+                    <Route path="shop" element={<Shop />} />
 
-                {/* Questions */}
-                <Route path="questions" element={<Questions />} />
+                    {/* Questions */}
+                    <Route path="questions" element={<Questions />} />
 
-                {/* Loan Calculator */}
-                <Route path="loan-calc" element={<LoanCalc />} />
+                    {/* Loan Calculator */}
+                    <Route path="loan-calc" element={<LoanCalc />} />
 
-                {/* Price Cards */}
-                <Route path="price-cards" element={<PriceCards />} />
+                    {/* Price Cards */}
+                    <Route path="price-cards" element={<PriceCards />} />
 
-                {/* Service */}
-                <Route path="service" element={<Service />} />
+                    {/* Service */}
+                    <Route path="service" element={<Service />} />
 
-                {/* About Us */}
-                <Route path="about-us" element={<AboutUs />} />
+                    {/* About Us */}
+                    <Route path="about-us" element={<AboutUs />} />
 
-                {/* Contacts */}
-                <Route path="contacts" element={<Contacts />} />
+                    {/* Contacts */}
+                    <Route path="contacts" element={<Contacts />} />
 
-                {/* Login Form */}
-                <Route path="login-form" element={<LoginForm />} />
-            </Routes>
+                    {/* Profile */}
+                    <Route path="profile" element={<Profile />} />
+
+                    {/* Login Form */}
+                    <Route path="login-form" element={<LoginForm />} />
+                </Routes>
         </BrowserRouter>
-    );
+    </AuthProvider>
+  );
 }
 
 export default App;

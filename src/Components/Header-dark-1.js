@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import logoImg from '../assets/image/navbar/logo.svg';
 import { Link } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
+import { AuthContext } from './AuthContext';
 
 export function HeaderDark() {
     const [showModal, setShowModal] = useState(false);
 
     const handleClose = () => setShowModal(false);
     const handleShow = () => setShowModal(true);
+    const { isAuth } = useContext(AuthContext);
 
     return (
         <section className="py-3 bg-black">
@@ -74,12 +76,19 @@ export function HeaderDark() {
                                         <Link to="/contacts" className="nav-link text-white">Contact</Link>
                                     </li>
 
-                                    {/* Sign-in */}
-                                    <li className="nav-item">
-                                        <Link to="/login-form" className="nav-link text-white">
-                                            <i className="bi bi-person"></i> Sign in
-                                        </Link>
-                                    </li>
+                                    {isAuth ? (
+                                        <li className="nav-item d-flex align-content-center">
+                                            <Link to="/profile" className="nav-link text-white">
+                                            <i className="bi bi-person me-1"></i> My Profile
+                                            </Link>
+                                        </li>
+                                        ) : (
+                                        <li className="nav-item d-flex align-content-center">
+                                            <Link to="/login-form" className="nav-link text-white">
+                                            <i className="bi bi-person me-1"></i> Sign in
+                                            </Link>
+                                        </li>
+                                    )}
 
                                     {/* button */}
                                     <li className="nav-item">
@@ -129,7 +138,19 @@ export function HeaderDark() {
                         </li>
                         <li><Link to="/about-us">About</Link></li>
                         <li><Link to="/contacts">Contact</Link></li>
-                        <li><Link to="/login-form"><i className="bi bi-person"></i> Sign in</Link></li>
+                        {isAuth ? (
+                                        <li className="nav-item">
+                                            <Link to="/profile" className="nav-link text-white">
+                                            <i className="bi bi-person"></i> Profile
+                                            </Link>
+                                        </li>
+                                        ) : (
+                                        <li className="nav-item">
+                                            <Link to="/login-form" className="nav-link text-white">
+                                            <i className="bi bi-person"></i> Sign in
+                                            </Link>
+                                        </li>
+                                    )}
                         <li><Link to="/" className="btn btn-lg btn-outline-primary">Submit Listing</Link></li>
                     </ul>
                 </Modal.Body>
