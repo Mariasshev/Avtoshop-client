@@ -1,119 +1,126 @@
-import React, { useState, useContext  } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { AuthContext } from "./AuthContext";
 import { LoadingOverlay } from "../Components/LoadingOverlay";
 
-
 export function Login() {
     const [isLoading, setIsLoading] = useState(false);
-
-    const { setIsAuth } = useContext(AuthContext);
     const [regFullName, setRegFullName] = useState("");
     const [regPhone, setRegPhone] = useState("");
     const [regEmail, setRegEmail] = useState("");
     const [regPassword, setRegPassword] = useState("");
+    const [regConfirm, setRegConfirm] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [regConfirm, setRegConfirm] = useState("");
     const [regError, setRegError] = useState("");
     const [regSuccess, setRegSuccess] = useState("");
-
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
     const [loginError, setLoginError] = useState("");
     const [loginSuccess, setLoginSuccess] = useState("");
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(prev => !prev);
-    };
+    const togglePasswordVisibility = () => setShowPassword(prev => !prev);
 
 
+    const { setIsAuth, setUser } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleRegister = async (e) => {
-  e.preventDefault();
-  setRegError("");
-  setRegSuccess("");
+        e.preventDefault();
+        setRegError("");
+        setRegSuccess("");
+        setIsLoading(true);
 
-  // Включаем индикатор
-  setIsLoading(true);
-  
-  // Валидация
-  if (!regFullName || !regPhone || !regEmail || !regPassword || !regConfirm) {
-    setRegError("All fields are required");
-    setIsLoading(false);
-    return;
-  }
-  if (regPassword !== regConfirm) {
-    setRegError("Passwords do not match");
-    setIsLoading(false);
-    return;
-  }
+        if (!regFullName || !regPhone || !regEmail || !regPassword || !regConfirm) {
+            setRegError("All fields are required");
+            setIsLoading(false);
+            return;
+        }
+        if (regPassword !== regConfirm) {
+            setRegError("Passwords do not match");
+            setIsLoading(false);
+            return;
+        }
 
-  try {
-    const response = await fetch(/* ... */);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Registration failed");
-    }
-    const data = await response.json();
-    // Сохраняем токен и авторизуем
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("name", data.name);
-    setIsAuth(true);
-    setRegSuccess(`Welcome, ${data.name}!`);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: regFullName,
+                    phoneNumber: regPhone,
+                    email: regEmail,
+                    password: regPassword,
+                }),
+            });
 
-    // Переход
-    setTimeout(() => navigate("/"), 1000);
-  } catch (err) {
-    setRegError(err.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Registration failed");
+            }
 
+            const data = await response.json();
+
+            // Сохраняем в контекст и localStorage
+            setUser({ name: data.name, token: data.token });
+            setIsAuth(true);
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("name", data.name);
+
+            setRegSuccess(`Welcome, ${data.name}!`);
+            setRegFullName(""); setRegPhone(""); setRegEmail(""); setRegPassword(""); setRegConfirm("");
+
+            setTimeout(() => navigate("/"), 1000);
+        } catch (err) {
+            setRegError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoginError("");
-  setLoginSuccess("");
-  setIsLoading(true); // <--- включаем спиннер
+        e.preventDefault();
+        setLoginError("");
+        setLoginSuccess("");
+        setIsLoading(true);
 
-  if (!loginEmail || !loginPassword) {
-    setLoginError("Please enter email and password");
-    setIsLoading(false); // <--- выключаем при ошибке
-    return;
-  }
+        if (!loginEmail || !loginPassword) {
+            setLoginError("Please enter email and password");
+            setIsLoading(false);
+            return;
+        }
 
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-    });
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+            });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Login failed");
-    }
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Login failed");
+            }
 
-    const data = await response.json();
-    setLoginSuccess(`Welcome, ${data.name}!`);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("name", data.name);
-    setIsAuth(true);
+            const data = await response.json();
 
-    setTimeout(() => {
-      navigate("/");
-      setIsLoading(false); // <--- выключаем после редиректа
-    }, 1000);
-  } catch (err) {
-    setLoginError(err.message);
-    setIsLoading(false); // <--- выключаем при ошибке
-  }
-};
+            setUser({ name: data.name, token: data.token });
+            setIsAuth(true);
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("name", data.name);
+
+            setLoginSuccess(`Welcome, ${data.name}!`);
+            setTimeout(() => {
+                navigate("/");
+                setIsLoading(false);
+            }, 1000);
+        } catch (err) {
+            setLoginError(err.message);
+            setIsLoading(false);
+        }
+    };
 
 
     return (

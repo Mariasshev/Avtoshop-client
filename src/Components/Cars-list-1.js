@@ -9,17 +9,25 @@ export function CarsList({ limit }) {
     const [cars, setCars] = useState([]);
 
     useEffect(() => {
-        setCars(carsData.slice(0, 8));
-        AOS.init({
-            duration: 1000,
-            once: false,
-            offset: 200,
-        });
-    }, [limit]);
+    const fetchCars = async () => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars`);
+            const data = await response.json();
+            setCars(limit ? data.slice(0, limit) : data);
+        } catch (err) {
+            console.error("Failed to fetch cars:", err);
+        }
+    };
 
-    useEffect(() => {
-        AOS.refresh();
-    }, [cars]);
+    fetchCars();
+
+    AOS.init({
+        duration: 1000,
+        once: false,
+        offset: 200,
+    });
+}, [limit]);
+
 
     return (
         <div className="section bg-white-2 py-3">
@@ -55,9 +63,10 @@ export function CarsList({ limit }) {
                                     key={car.id}
                                     car={car}
                                     data-aos="fade-up"
-                                    data-aos-delay={`${400 + car.id * 100}`}
+                                    data-aos-delay={`${400 + car.Id * 100}`}
                                 />
-                            ))}
+                                ))}
+
                         </div>
                     </div>
                 </div>

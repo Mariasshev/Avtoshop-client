@@ -11,7 +11,7 @@ import 'boxicons/css/boxicons.min.css';
 import "slick-carousel/slick/slick-theme.css";
 import './App.css';
 
-import { AuthProvider } from './Components/AuthContext';
+//import { AuthProvider } from './Components/AuthContext';
 //import {useState } from 'react';
 import { MainPage } from "./Pages/MainPage";
 import { CarsList } from "./Pages/Cars-list";
@@ -28,6 +28,7 @@ import { Contacts } from "./Pages/Contacts";
 import { LoginForm } from "./Pages/LoginForm";
 import { Profile } from './Pages/Profile';
 
+
 function App() {
 
     useEffect(() => {
@@ -38,7 +39,7 @@ function App() {
 
 
   return (
-    <AuthProvider>
+    
         <BrowserRouter>
                 <Routes>
                     {/* Redirect from root path to index */}
@@ -87,7 +88,8 @@ function App() {
                     <Route path="login-form" element={<LoginForm />} />
                 </Routes>
         </BrowserRouter>
-    </AuthProvider>
+        
+   
   );
 }
 

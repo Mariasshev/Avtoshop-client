@@ -1,30 +1,144 @@
-import { useState } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
-import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Components/AuthContext';
 import { LoadingOverlay } from "../Components/LoadingOverlay";
 
 export function ProfilePage() {
   const [key, setKey] = useState('profile');
-
   const { setIsAuth } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    city: '',
+    country: ''
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      console.log('Начинаем fetchProfile');
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.error('Токен не найден в localStorage');
+        setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+        return;
+      }
+      console.log('Токен найден:', token);
+
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        console.log('Ответ от сервера получен, статус:', response.status);
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.warn('401 Unauthorized - переходим на страницу входа');
+            setErrorMessage('Неавторизованный доступ. Войдите снова.');
+            setIsAuth(false);
+            navigate("/login-form");
+          } else {
+            const errorText = await response.text();
+            console.error('Ошибка от сервера:', errorText);
+            setErrorMessage(`Ошибка при получении профиля: ${errorText}`);
+          }
+          return;
+        }
+
+        const data = await response.json();
+        console.log('Данные профиля:', data);
+
+        setFormData({
+          firstName: data.name || '',
+          lastName: data.surname || '',
+          email: data.email || '',
+          phone: data.phoneNumber || '',
+          city: data.city || '',
+          country: data.country || ''
+        });
+        setErrorMessage(''); // очищаем ошибку, если всё ок
+
+      } catch (error) {
+        console.error('Ошибка загрузки профиля:', error);
+        setErrorMessage('Ошибка загрузки профиля. Проверьте соединение.');
+      }
+    };
+
+    fetchProfile();
+  }, [navigate, setIsAuth]);
 
   const handleLogout = () => {
-  setIsLoggingOut(true);
-    // Удаляем токен и статус авторизации
-  localStorage.removeItem("token");
-  localStorage.removeItem("name");
-  setIsAuth(false);
-  
-  // Переход через 1.5 секунды
-  setTimeout(() => {
-    navigate("/login-form");
-    setIsLoggingOut(false);
-  }, 1500);
-};
+    console.log('Вызван handleLogout');
+    setIsLoggingOut(true);
+    localStorage.removeItem("token");
+    localStorage.removeItem("name");
+    setIsAuth(false);
+    setTimeout(() => {
+      navigate("/login-form");
+      setIsLoggingOut(false);
+    }, 1000);
+  };
+
+  const handleSaveClick = () => {
+    setShowModal(true);
+  };
+
+  const confirmSave = async () => {
+    setShowModal(false);
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error('Токен не найден при сохранении');
+      setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+      return;
+    }
+
+    const payload = {
+      name: formData.firstName,
+      surname: formData.lastName,
+      email: formData.email,
+      phoneNumber: formData.phone,
+      city: formData.city,
+      country: formData.country
+    };
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ошибка при сохранении:', errorText);
+        setErrorMessage(`Ошибка при сохранении: ${errorText}`);
+        return;
+      }
+
+      alert('Данные обновлены!');
+      setErrorMessage('');
+
+    } catch (error) {
+      console.error('Ошибка сети при обновлении профиля:', error);
+      setErrorMessage('Ошибка сети при сохранении профиля.');
+    }
+  };
+
 
 
   return (
@@ -38,11 +152,10 @@ export function ProfilePage() {
 
           <Tabs id="profileTabs" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
             <Tab eventKey="profile" title="Profile">
-              {/* Профиль */}
               <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
                 <div className="row g-4">
                   <div className="col-md-4 text-center">
-                    <img src="../images/news/icon/user.svg" className="rounded-circle mb-3 profile-img" alt="Profile`s photo" />
+                    <img src="/images/news/icon/user.svg" className="rounded-circle mb-3 profile-img" alt="Profile" />
                     <div>
                       <button className="btn btn-outline-primary btn-sm">Change photo</button>
                     </div>
@@ -52,29 +165,61 @@ export function ProfilePage() {
                       <div className="row g-3">
                         <div className="col-md-6">
                           <label className="form-label">First Name</label>
-                          <input type="text" className="form-control" placeholder="Enter your name" />
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                          />
                         </div>
                         <div className="col-md-6">
                           <label className="form-label">Last Name</label>
-                          <input type="text" className="form-control" placeholder="Enter your last name" />
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                          />
                         </div>
                         <div className="col-12">
                           <label className="form-label">Email</label>
-                          <input type="email" className="form-control" placeholder="Enter email" />
+                          <input
+                            type="email"
+                            className="form-control"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          />
                         </div>
                         <div className="col-md-6">
                           <label className="form-label">Phone</label>
-                          <input type="text" className="form-control" placeholder="Enter your phone number" />
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          />
+
                         </div>
                         <div className="col-md-6">
                           <label className="form-label">City</label>
-                          <input type="text" className="form-control" placeholder="Enter your city" />
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.city}
+                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          />
                         </div>
                         <div className="col-md-6">
                           <label className="form-label">Country</label>
-                          <input type="text" className="form-control" placeholder="Enter your country" />
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.country}
+                            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                          />
                         </div>
                       </div>
+
                       <div className="mt-4 text-center text-md-end">
                         <button
                           type="button"
@@ -84,7 +229,13 @@ export function ProfilePage() {
                           <i className="bi bi-box-arrow-left me-1"></i> Logout
                         </button>
 
-                        <button className="btn btn-primary px-3 py-2 fw-semibold">Save changes</button>
+                        <button
+                          type="button"
+                          className="btn btn-primary px-3 py-2 fw-semibold"
+                          onClick={handleSaveClick}
+                        >
+                          Save changes
+                        </button>
                       </div>
                     </form>
                   </div>
@@ -95,21 +246,30 @@ export function ProfilePage() {
             <Tab eventKey="favorites" title="Favourites">
               <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
                 <p className="mb-3 h5 text-start">Favourites</p>
-                {/* <div className="row">
-                  {[...Array(6)].map((_, i) => (
-                    <div className="col-12 col-sm-6 col-md-3" key={i}>
-                      <CarCard />
-                    </div>
-                  ))}
-                </div> */}
               </div>
             </Tab>
-
-
           </Tabs>
 
           {isLoggingOut && <LoadingOverlay text="Logging out..." />}
-          
+      {showModal && (
+        <div className="modal fade show d-block" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Подтвердите изменения</h5>
+                <button className="btn-close" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p>Вы уверены, что хотите сохранить изменения?</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Отмена</button>
+                <button className="btn btn-primary" onClick={confirmSave}>Да, сохранить</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
         </div>
       </main>
     </div>
