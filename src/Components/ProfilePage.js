@@ -1,8 +1,9 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext,useRef } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Components/AuthContext';
 import { LoadingOverlay } from "../Components/LoadingOverlay";
+import profileImg from '../assets/image/user/user-profile-img.png';
 
 export function ProfilePage() {
   const [key, setKey] = useState('profile');
@@ -68,6 +69,14 @@ export function ProfilePage() {
           country: data.country || ''
         });
         setErrorMessage(''); // очищаем ошибку, если всё ок
+        if (data.photoUrl) {
+  const fullUrl = data.photoUrl.startsWith('http')
+    ? data.photoUrl
+    : `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}${data.photoUrl.startsWith('/') ? '' : '/'}${data.photoUrl}`;
+  setProfileImgSrc(fullUrl);
+} else {
+  setProfileImgSrc(profileImg); // дефолтное
+}
 
       } catch (error) {
         console.error('Ошибка загрузки профиля:', error);
@@ -140,6 +149,46 @@ export function ProfilePage() {
   };
 
 
+  //
+  const [profileImgSrc, setProfileImgSrc] = useState(profileImg); // дефолт
+  const fileInputRef = useRef();
+
+  const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error('Token missing');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/profile/photo`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      console.error('Ошибка загрузки фото:', response.statusText);
+      return;
+    }
+
+    const data = await response.json();
+    console.log('Ответ сервера по фото:', data);
+
+  } catch (error) {
+    console.error('Ошибка при загрузке фото', error);
+  }
+};
+
+
 
   return (
     <div className="page-wrapper d-flex flex-column min-vh-100">
@@ -154,11 +203,25 @@ export function ProfilePage() {
             <Tab eventKey="profile" title="Profile">
               <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
                 <div className="row g-4">
-                  <div className="col-md-4 text-center">
-                    <img src="/images/news/icon/user.svg" className="rounded-circle mb-3 profile-img" alt="Profile" />
-                    <div>
-                      <button className="btn btn-outline-primary btn-sm">Change photo</button>
+                  <div className="col-md-4 text-center d-flex justify-content-center">
+                    <div className='profile-img'>
+<img src={profileImgSrc} className="rounded-circle mb-3" alt="Profile" />
+<div>
+  <button 
+    className="btn btn-outline-primary btn-sm" 
+    onClick={() => fileInputRef.current.click()}
+  >
+    Change photo
+  </button>
+  <input
+    type="file"
+    ref={fileInputRef}
+    style={{ display: 'none' }}
+    onChange={handleFileChange}
+  />
+</div>
                     </div>
+                    
                   </div>
                   <div className="col-md-8">
                     <form>
