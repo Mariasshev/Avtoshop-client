@@ -149,7 +149,7 @@ export function ProfilePage() {
   };
 
 
-  //
+  //change photo
   const [profileImgSrc, setProfileImgSrc] = useState(profileImg); // дефолт
   const fileInputRef = useRef();
 
@@ -188,7 +188,66 @@ export function ProfilePage() {
   }
 };
 
+//change password
+const [passwordError, setPasswordError] = useState('');       // для current password
+const [newPasswordError, setNewPasswordError] = useState(''); // для new passwords mismatch
 
+const [passwordData, setPasswordData] = useState({
+  currentPassword: '',
+  newPassword: '',
+  confirmNewPassword: ''
+});
+
+const handleChangePassword = async () => {
+  // очищаем предыдущие ошибки
+  setPasswordError('');
+  setNewPasswordError('');
+
+  if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+    setNewPasswordError('New passwords do not match');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Ошибка при смене пароля:', errorText);
+      if (errorText.includes('Текущий пароль неверный')) {
+        setPasswordError('Current password is incorrect');
+      } else {
+        setErrorMessage(`Ошибка при смене пароля: ${errorText}`);
+      }
+      return;
+    }
+
+    alert('Password changed successfully!');
+    setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+    setPasswordError('');
+    setNewPasswordError('');
+    setErrorMessage('');
+  } catch (error) {
+    console.error('Ошибка сети при смене пароля:', error);
+    setErrorMessage('Ошибка сети при смене пароля.');
+  }
+};
 
   return (
     <div className="page-wrapper d-flex flex-column min-vh-100">
@@ -205,25 +264,29 @@ export function ProfilePage() {
                 <div className="row g-4">
                   <div className="col-md-4 text-center d-flex justify-content-center">
                     <div className='profile-img'>
-<img src={profileImgSrc} className="rounded-circle mb-3" alt="Profile" />
-<div>
-  <button 
-    className="btn btn-outline-primary btn-sm" 
-    onClick={() => fileInputRef.current.click()}
-  >
-    Change photo
-  </button>
-  <input
-    type="file"
-    ref={fileInputRef}
-    style={{ display: 'none' }}
-    onChange={handleFileChange}
-  />
-</div>
+                      <img src={profileImgSrc} className="rounded-circle mb-3" alt="Profile" />
+                      <div>
+                        <button 
+                          className="btn btn-outline-primary btn-sm" 
+                          onClick={() => fileInputRef.current.click()}
+                        >
+                          Change photo
+                        </button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          style={{ display: 'none' }}
+                          onChange={handleFileChange}
+                        />
+                      </div>
                     </div>
                     
                   </div>
+                
                   <div className="col-md-8">
+
+                  <p className="fw-semibold">Your profile</p>
+                  <hr className="mb-4" />
                     <form>
                       <div className="row g-3">
                         <div className="col-md-6">
@@ -283,7 +346,7 @@ export function ProfilePage() {
                         </div>
                       </div>
 
-                      <div className="mt-4 text-center text-md-end">
+<div className="mt-4 text-center text-md-end">
                         <button
                           type="button"
                           className="btn btn-danger px-3 py-2 fw-regular me-1"
@@ -300,6 +363,69 @@ export function ProfilePage() {
                           Save changes
                         </button>
                       </div>
+
+
+<p className="fw-semibold mt-5">Change Password</p>
+<hr className="mb-4" />
+
+<div className="row g-3">
+  <div className="col-md-12">
+  <label className="form-label">Current Password</label>
+  <input
+    type="password"
+    className="form-control"
+    value={passwordData.currentPassword}
+    onChange={(e) => {
+      setPasswordData({ ...passwordData, currentPassword: e.target.value });
+      setPasswordError('');
+    }}
+  />
+  {passwordError && (
+    <div className="text-danger small mt-1">{passwordError}</div>
+  )}
+</div>
+
+
+  <div className="col-md-6">
+  <label className="form-label">New Password</label>
+  <input
+    type="password"
+    className="form-control"
+    value={passwordData.newPassword}
+    onChange={(e) => {
+      setPasswordData({ ...passwordData, newPassword: e.target.value });
+      setNewPasswordError('');
+    }}
+  />
+</div>
+<div className="col-md-6">
+  <label className="form-label">Confirm New Password</label>
+  <input
+    type="password"
+    className="form-control"
+    value={passwordData.confirmNewPassword}
+    onChange={(e) => {
+      setPasswordData({ ...passwordData, confirmNewPassword: e.target.value });
+      setNewPasswordError('');
+    }}
+  />
+</div>
+{newPasswordError && (
+  <div className="text-danger small mt-1">{newPasswordError}</div>
+)}
+
+</div>
+
+<div className="mt-3 text-end">
+  <button
+    type="button"
+    className="btn btn-warning px-3 py-2 fw-semibold"
+    onClick={handleChangePassword}
+  >
+    Change Password
+  </button>
+</div>
+
                     </form>
                   </div>
                 </div>
