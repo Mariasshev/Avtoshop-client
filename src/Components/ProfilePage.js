@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Components/AuthContext';
 import { LoadingOverlay } from "../Components/LoadingOverlay";
 import profileImg from '../assets/image/user/user-profile-img.png';
+import { MyListingItem } from '../Components/MyListingItem.js';
 
 export function ProfilePage() {
   const [key, setKey] = useState('profile');
@@ -249,10 +250,66 @@ const handleChangePassword = async () => {
   }
 };
 
+
+//add car list
+const [listings, setListings] = useState([]);
+  const [loadingListings, setLoadingListings] = useState(false);
+  const [listingsError, setListingsError] = useState('');
+
+useEffect(() => {
+    const fetchListings = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setListingsError('Токен не найден. Пожалуйста, войдите заново.');
+        return;
+      }
+
+      setLoadingListings(true);
+      setListingsError('');
+
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/user-cars`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          setListingsError(`Ошибка загрузки объявлений: ${errorText}`);
+          setListings([]);
+          return;
+        }
+
+        const data = await response.json();
+
+        // Предполагается, что data - массив машин пользователя
+        setListings(data);
+      } catch (error) {
+        setListingsError('Ошибка сети при загрузке объявлений');
+        setListings([]);
+      } finally {
+        setLoadingListings(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
+const handleEdit = (id) => {
+  console.log('Edit listing:', id);
+  // navigate или открыть модалку для редактирования
+};
+
+const handleDelete = (id) => {
+  console.log('Delete listing:', id);
+  // логика удаления
+};
+
   return (
     <div className="page-wrapper d-flex flex-column min-vh-100">
       <main className="flex-grow-1">
-        <div className="container-lg mt-5">
+        <div className="container-lg mt-5 mb-4">
           <div className="text-center mb-3 mb-md-5 d-none d-md-block">
             <h2 className="fw-bold h2 mb-1">Personal account</h2>
             <p className="body-text-size blue-4">Manage your account, car listings and articles</p>
@@ -437,7 +494,68 @@ const handleChangePassword = async () => {
                 <p className="mb-3 h5 text-start">Favourites</p>
               </div>
             </Tab>
+            <Tab eventKey="listings" title="My Listings">
+              <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="mb-0">My Listings</h5>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => navigate('/add-listing')}
+                  >
+                    <i className="bi bi-plus-lg me-1"></i> Add Listing
+                  </button>
+                </div>
+
+                {loadingListings && <p>Загрузка объявлений...</p>}
+                {listingsError && <p className="text-danger">{listingsError}</p>}
+
+                {!loadingListings && !listingsError && (
+                  <>
+                    <div className="d-none d-md-block">
+                      <div className="table-responsive">
+                        <table className="table align-middle">
+                          <thead>
+                            <tr>
+                              <th scope="col">Updated</th>
+                              <th scope="col">Photo</th>
+                              <th scope="col">Title</th>
+                              <th scope="col">Price</th>
+                              <th scope="col">Status</th>
+                              <th scope="col">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {listings.map(listing => (
+                              <MyListingItem 
+                                key={listing.id} 
+                                listing={listing} 
+                                onEdit={handleEdit} 
+                                onDelete={handleDelete} 
+                              />
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Mobile view */}
+                    <div className="d-md-none">
+                      {listings.map(listing => (
+                        <MyListingItem 
+                          key={listing.id} 
+                          listing={listing} 
+                          onEdit={handleEdit} 
+                          onDelete={handleDelete} 
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </Tab>
+
           </Tabs>
+          
 
           {isLoggingOut && <LoadingOverlay text="Logging out..." />}
       {showModal && (
