@@ -28,6 +28,7 @@ import { Contacts } from "./Pages/Contacts";
 import { LoginForm } from "./Pages/LoginForm";
 import { Profile } from './Pages/Profile';
 import { AddCarPage } from './Pages/AddCarPage';
+import { EditCarPage } from './Pages/EditCarPage';
 
 
 function App() {
@@ -90,6 +91,10 @@ function App() {
 
                     {/* Car Form */}
                     <Route path="/add-listing" element={<AddCarPage />} />
+
+                    {/* Edit user car */}
+                    <Route path="/cars/edit/:id" element={<EditCarPage />} />
+
 
                 </Routes>
         </BrowserRouter>

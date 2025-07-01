@@ -296,10 +296,9 @@ useEffect(() => {
     fetchListings();
   }, []);
 
-const handleEdit = (id) => {
-  console.log('Edit listing:', id);
-  // navigate или открыть модалку для редактирования
-};
+  const handleEdit = (id) => {
+    navigate(`/cars/edit/${id}`);
+  };
 
 const handleDelete = (id) => {
   console.log('Delete listing:', id);

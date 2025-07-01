@@ -1,24 +1,7 @@
 import React from 'react';
-// function getPhotoUrl(listing.PhotoUrl) {
-//   console.log('Исходный photoUrl:', photoUrl);
-
-//   if (!photoUrl) {
-//     console.log('Фото отсутствует');
-//     return ''; // нет фото
-//   }
-
-//   if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-//     console.log('Фото уже полный URL:', photoUrl);
-//     return photoUrl;
-//   }
-
-//   const fullUrl = `${process.env.REACT_APP_API_URL}${photoUrl}`;
-//   console.log('Относительный путь, полный URL:', fullUrl);
-//   return fullUrl;
-// }
 
 export function MyListingItem({ listing, onEdit, onDelete }) {
-    console.log('Исходный photoUrl:', `http://localhost:7141${listing.photo}`);
+    //console.log('Исходный photoUrl:', `http://localhost:7141${listing.photo}`);
   return (
     <>
       {/* Desktop view */}
@@ -34,8 +17,6 @@ export function MyListingItem({ listing, onEdit, onDelete }) {
                 }) 
             : '—'}
         </td>
-
-
 
         <td>
           <img 
@@ -80,8 +61,9 @@ export function MyListingItem({ listing, onEdit, onDelete }) {
           </div>
           <div>
             <button className="btn btn-sm btn-outline-primary me-1" onClick={() => onEdit(listing.id)}>
-              <i className="bi bi-pencil"></i>
+                <i className="bi bi-pencil"></i>
             </button>
+
             <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(listing.id)}>
               <i className="bi bi-trash"></i>
             </button>
