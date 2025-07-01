@@ -47,6 +47,10 @@ export function AddCarForm() {
     data.append('Photos', photo); // имя с большой буквы, как в CarCreateDto
   });
 
+//   if (isUpdate) {
+//     data.append('PhotosToDelete', JSON.stringify(photosToDelete));
+//   }
+
   try {
     const token = localStorage.getItem('token');
     console.log('Token:', token); // для проверки
@@ -90,6 +94,9 @@ export function AddCarForm() {
     console.error('Network error:', error);
     alert('Network error');
   }
+//   if (isUpdate) {
+//   data.append('PhotosToDelete', JSON.stringify(photosToDelete));
+// }
 };
 
 

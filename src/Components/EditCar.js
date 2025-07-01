@@ -20,27 +20,31 @@ export function EditCar() {
     color: '',
     vin: '',
     price: '',
-    description: ''
-    // isOnStock: 1,
+    description: '',
+    id: id,
   });
 
-  const [photos, setPhotos] = useState([]);
+  const [existingPhotos, setExistingPhotos] = useState([]); // URL строками
+  const [photosToDelete, setPhotosToDelete] = useState([]); // URL для удаления
+  const [newPhotos, setNewPhotos] = useState([]); // файлы для загрузки
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+useEffect(() => {
+  const fetchCar = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}/details`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
 
-  useEffect(() => {
-    const fetchCar = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}/details`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) {
-          throw new Error(`Ошибка загрузки: ${res.status}`);
-        }
-        const data = await res.json();
-console.log("API response:", data);
-        setFormData({
+      const data = await res.json();
+
+      console.log("API response data:", data);
+      console.log("Existing photos array:", data.photoUrls ?? []);
+
+      setFormData({
         mileage: data.mileage ?? '',
         year: data.year ?? '',
         transmission: data.transmission ?? '',
@@ -56,24 +60,23 @@ console.log("API response:", data);
         vin: data.vin ?? '',
         price: data.price ?? '',
         description: data.description ?? '',
-        isOnStock: data.isOnStock ?? 1,  // если нужно, можно раскомментировать
-        id: data.id ?? id // обязательно положи id, чтобы он не пропал
-        });
+        id: data.id ?? id
+      });
 
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setExistingPhotos(data.photoUrls ?? []);  //
 
-    fetchCar();
-  }, [id]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCar();
+}, [id]);
 
 
 
-  console.log("engineSize:", formData.engineSize);
-  console.log("model:", formData.model);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -83,34 +86,42 @@ console.log("API response:", data);
   };
 
   const handleFileChange = (e) => {
-    setPhotos(Array.from(e.target.files));
+    setNewPhotos(Array.from(e.target.files));
+  };
+
+  const handleDeleteExistingPhoto = (url) => {
+    setPhotosToDelete(prev => [...prev, url]);
+    setExistingPhotos(prev => prev.filter(p => p !== url));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-const data = new FormData();
+      const data = new FormData();
 
-// Обязательно добавь id в FormData
-data.append('Id', id); // или formData.id если у тебя в состоянии
+      // Важный момент: добавляем id в FormData
+      data.append('Id', formData.id);
 
-// Добавь остальные поля
-Object.entries(formData).forEach(([key, value]) => {
-  if (key !== 'id') { // чтобы не дублировать id
-    data.append(key, value);
-  }
+      // Добавляем остальные поля кроме photosToDelete и id
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key.toLowerCase() !== 'id') {
+          data.append(key, value);
+        }
+      });
 
-});
+      // Добавляем новые фото (файлы)
+      newPhotos.forEach(photo => data.append('Photos', photo));
 
-      photos.forEach(photo => data.append('Photos', photo)); // имя с большой буквы
+      // Добавляем photosToDelete как JSON строку
+      data.append('PhotosToDelete', JSON.stringify(photosToDelete));
 
       const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`
-          // НЕ добавляй "Content-Type" для FormData, браузер сам установит нужный с boundary
+          // НЕ добавляем Content-Type, он сам будет установлен для FormData
         },
         body: data
       });
@@ -133,117 +144,80 @@ Object.entries(formData).forEach(([key, value]) => {
   return (
     <div className="container my-5">
       <h2>Edit Car</h2>
+
+      {/* Отображение существующих фото с кнопкой удаления */}
+      <div className="mb-3">
+        <label>Existing Photos:</label>
+        <div className="d-flex flex-wrap gap-2">
+          {existingPhotos.length === 0 && <p>No photos</p>}
+          {existingPhotos.map(url => (
+            <div key={url} style={{ position: 'relative' }}>
+              <img src={process.env.REACT_APP_API_URL + url} alt="car" style={{ width: 100, height: 80, objectFit: 'cover' }} />
+              <button
+                type="button"
+                onClick={() => handleDeleteExistingPhoto(url)}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  background: 'red',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: 20,
+                  height: 20,
+                  cursor: 'pointer'
+                }}
+              >x</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <div className="row g-3">
 
+          {/* Здесь все остальные поля, как в твоем примере */}
+
           <div className="col-md-4">
             <label>Mileage</label>
-            <input
-              type="number"
-              name="mileage"
-              className="form-control"
-              value={formData.mileage}
-              onChange={handleChange}
-            />
+            <input type="number" name="mileage" className="form-control" value={formData.mileage} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Year</label>
-            <input
-              type="number"
-              name="year"
-              className="form-control"
-              value={formData.year}
-              onChange={handleChange}
-            />
+            <input type="number" name="year" className="form-control" value={formData.year} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Engine Size</label>
-            <input
-              type="number"
-              name="engineSize"
-              className="form-control"
-              value={formData.engineSize}
-              onChange={handleChange}
-            />
+            <input type="number" name="engineSize" className="form-control" value={formData.engineSize} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Doors</label>
-            <input
-              type="number"
-              name="door"
-              className="form-control"
-              value={formData.door}
-              onChange={handleChange}
-            />
+            <input type="number" name="door" className="form-control" value={formData.door} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Cylinders</label>
-            <input
-              type="number"
-              name="cylinder"
-              className="form-control"
-              value={formData.cylinder}
-              onChange={handleChange}
-            />
+            <input type="number" name="cylinder" className="form-control" value={formData.cylinder} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Price</label>
-            <input
-              type="number"
-              step="0.01"
-              name="price"
-              className="form-control"
-              value={formData.price}
-              onChange={handleChange}
-            />
+            <input type="number" step="0.01" name="price" className="form-control" value={formData.price} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Brand</label>
-            <input
-              type="text"
-              name="brand"
-              className="form-control"
-              value={formData.brand}
-              onChange={handleChange}
-            />
+            <input type="text" name="brand" className="form-control" value={formData.brand} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Model</label>
-            <input
-              type="text"
-              name="model"
-              className="form-control"
-              value={formData.model}
-              onChange={handleChange}
-            />
+            <input type="text" name="model" className="form-control" value={formData.model} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>VIN</label>
-            <input
-              type="text"
-              name="vin"
-              className="form-control"
-              value={formData.vin}
-              onChange={handleChange}
-            />
+            <input type="text" name="vin" className="form-control" value={formData.vin} onChange={handleChange} />
           </div>
-
           <div className="col-md-4">
             <label>Color</label>
-            <select
-              name="color"
-              className="form-select"
-              value={formData.color}
-              onChange={handleChange}
-            >
+            <select name="color" className="form-select" value={formData.color} onChange={handleChange}>
               <option value="">Select color</option>
               <option value="Black">Black</option>
               <option value="White">White</option>
@@ -253,29 +227,17 @@ Object.entries(formData).forEach(([key, value]) => {
               <option value="Other">Other</option>
             </select>
           </div>
-
           <div className="col-md-4">
             <label>Transmission</label>
-            <select
-              name="transmission"
-              className="form-select"
-              value={formData.transmission}
-              onChange={handleChange}
-            >
+            <select name="transmission" className="form-select" value={formData.transmission} onChange={handleChange}>
               <option value="">Select transmission</option>
               <option value="Automatic">Automatic</option>
               <option value="Manual">Manual</option>
             </select>
           </div>
-
           <div className="col-md-4">
             <label>Fuel Type</label>
-            <select
-              name="fuelType"
-              className="form-select"
-              value={formData.fuelType}
-              onChange={handleChange}
-            >
+            <select name="fuelType" className="form-select" value={formData.fuelType} onChange={handleChange}>
               <option value="">Select fuel type</option>
               <option value="Petrol">Petrol</option>
               <option value="Diesel">Diesel</option>
@@ -283,30 +245,18 @@ Object.entries(formData).forEach(([key, value]) => {
               <option value="Electric">Electric</option>
             </select>
           </div>
-
           <div className="col-md-4">
             <label>Drive Type</label>
-            <select
-              name="driverType"
-              className="form-select"
-              value={formData.driverType}
-              onChange={handleChange}
-            >
+            <select name="driverType" className="form-select" value={formData.driverType} onChange={handleChange}>
               <option value="">Select drive type</option>
               <option value="FWD">FWD</option>
               <option value="RWD">RWD</option>
               <option value="AWD">AWD</option>
             </select>
           </div>
-
           <div className="col-md-4">
             <label>Condition</label>
-            <select
-              name="condition"
-              className="form-select"
-              value={formData.condition}
-              onChange={handleChange}
-            >
+            <select name="condition" className="form-select" value={formData.condition} onChange={handleChange}>
               <option value="">Select condition</option>
               <option value="New">New</option>
               <option value="Used">Used</option>
@@ -315,42 +265,14 @@ Object.entries(formData).forEach(([key, value]) => {
           </div>
 
           <div className="col-md-12">
-            <label>Photos (multiple)</label>
-            <input
-              type="file"
-              multiple
-              className="form-control"
-              onChange={handleFileChange}
-            />
+            <label>New Photos (multiple)</label>
+            <input type="file" multiple className="form-control" onChange={handleFileChange} />
           </div>
 
           <div className="col-md-12 mt-3">
             <label>Description</label>
-            <p className='fw-bold'>!This field does not allow: <br />
-              <span className='text-danger fw-normal'>Leaving links or contact information</span><br />
-              <span className='text-danger fw-normal'>Offering services</span></p>
-            <textarea
-              name="description"
-              className="form-control"
-              value={formData.description}
-              onChange={handleChange}
-              rows={4}
-            />
+            <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={4} />
           </div>
-
-          {/* <div className="col-md-12 mt-3">
-            <div className="form-check">
-              <input
-                type="checkbox"
-                name="isOnStock"
-                className="form-check-input"
-                checked={formData.isOnStock === 1}
-                onChange={handleChange}
-                id="isOnStockCheck"
-              />
-              <label htmlFor="isOnStockCheck" className="form-check-label">Is On Stock</label>
-            </div>
-          </div> */}
 
         </div>
 
