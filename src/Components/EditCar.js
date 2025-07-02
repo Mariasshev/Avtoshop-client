@@ -10,7 +10,7 @@ export function EditCar() {
     year: '',
     transmission: '',
     fuelType: '',
-    brand: '',
+    brand: '',  // ID бренда как строка
     model: '',
     driverType: '',
     condition: '',
@@ -24,58 +24,83 @@ export function EditCar() {
     id: id,
   });
 
-  const [existingPhotos, setExistingPhotos] = useState([]); // URL строками
-  const [photosToDelete, setPhotosToDelete] = useState([]); // URL для удаления
-  const [newPhotos, setNewPhotos] = useState([]); // файлы для загрузки
+  const [existingPhotos, setExistingPhotos] = useState([]);
+  const [photosToDelete, setPhotosToDelete] = useState([]);
+  const [newPhotos, setNewPhotos] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [models, setModels] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-useEffect(() => {
-  const fetchCar = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}/details`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
 
-      const data = await res.json();
+  // Загрузить бренды при монтировании
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands`)
+      .then(res => res.json())
+      .then(data => setBrands(data))
+      .catch(err => console.error('Failed to load brands', err));
+  }, []);
 
-      console.log("API response data:", data);
-      console.log("Existing photos array:", data.photoUrls ?? []);
+  // Загрузить данные машины
+  useEffect(() => {
+    const fetchCar = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}/details`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
 
-      setFormData({
-        mileage: data.mileage ?? '',
-        year: data.year ?? '',
-        transmission: data.transmission ?? '',
-        fuelType: data.fuelType ?? '',
-        brand: data.brand ?? '',
-        model: data.model ?? '',
-        driverType: data.driverType ?? '',
-        condition: data.condition ?? '',
-        engineSize: data.engineSize ?? '',
-        door: data.door ?? '',
-        cylinder: data.cylinder ?? '',
-        color: data.color ?? '',
-        vin: data.vin ?? '',
-        price: data.price ?? '',
-        description: data.description ?? '',
-        id: data.id ?? id
-      });
+        const data = await res.json();
 
-      setExistingPhotos(data.photoUrls ?? []);  //
+        console.log('brand from API:', data.brand);
 
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Проверяем, если brand — объект, достаём id, если строка/число — приводим к строке
+        let brandId = '';
+        if (data.brand) {
+          if (typeof data.brand === 'object' && data.brand.id) {
+            brandId = String(data.brand.id);
+          } else {
+            brandId = String(data.brand);
+          }
+        }
 
-  fetchCar();
-}, [id]);
+        setFormData({
+          mileage: data.mileage ?? '',
+          year: data.year ?? '',
+          transmission: data.transmission ?? '',
+          fuelType: data.fuelType ?? '',
+          brand: brandId,
+          model: data.model ?? '',
+          driverType: data.driverType ?? '',
+          condition: data.condition ?? '',
+          engineSize: data.engineSize ?? '',
+          door: data.door ?? '',
+          cylinder: data.cylinder ?? '',
+          color: data.color ?? '',
+          vin: data.vin ?? '',
+          price: data.price ?? '',
+          description: data.description ?? '',
+          id: data.id ?? id
+        });
 
+        setExistingPhotos(data.photoUrls ?? []);
 
+        if (brandId) {
+          fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands/${brandId}/models`)
+            .then(res => res.json())
+            .then(modelsData => setModels(modelsData))
+            .catch(err => console.error('Failed to load models', err));
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCar();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -83,6 +108,34 @@ useEffect(() => {
       ...prev,
       [name]: type === 'checkbox' ? (checked ? 1 : 0) : value
     }));
+  };
+
+  const handleBrandChange = (e) => {
+    const selectedBrandId = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      brand: selectedBrandId,
+      model: ''
+    }));
+
+    if (selectedBrandId) {
+      fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands/${selectedBrandId}/models`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setModels(data);
+          } else {
+            setModels([]);
+            console.error('Models data is not an array:', data);
+          }
+        })
+        .catch(err => {
+          setModels([]);
+          console.error('Failed to load models', err);
+        });
+    } else {
+      setModels([]);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -96,33 +149,21 @@ useEffect(() => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const data = new FormData();
-
-      // Важный момент: добавляем id в FormData
       data.append('Id', formData.id);
-
-      // Добавляем остальные поля кроме photosToDelete и id
       Object.entries(formData).forEach(([key, value]) => {
         if (key.toLowerCase() !== 'id') {
           data.append(key, value);
         }
       });
-
-      // Добавляем новые фото (файлы)
       newPhotos.forEach(photo => data.append('Photos', photo));
-
-      // Добавляем photosToDelete как JSON строку
       data.append('PhotosToDelete', JSON.stringify(photosToDelete));
 
       const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}`, {
         method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`
-          // НЕ добавляем Content-Type, он сам будет установлен для FormData
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: data
       });
 
@@ -145,14 +186,17 @@ useEffect(() => {
     <div className="container my-5">
       <h2>Edit Car</h2>
 
-      {/* Отображение существующих фото с кнопкой удаления */}
       <div className="mb-3">
         <label>Existing Photos:</label>
         <div className="d-flex flex-wrap gap-2">
           {existingPhotos.length === 0 && <p>No photos</p>}
           {existingPhotos.map(url => (
             <div key={url} style={{ position: 'relative' }}>
-              <img src={process.env.REACT_APP_API_URL + url} alt="car" style={{ width: 100, height: 80, objectFit: 'cover' }} />
+              <img
+                src={process.env.REACT_APP_API_URL + url}
+                alt="car"
+                style={{ width: 100, height: 80, objectFit: 'cover' }}
+              />
               <button
                 type="button"
                 onClick={() => handleDeleteExistingPhoto(url)}
@@ -168,7 +212,9 @@ useEffect(() => {
                   height: 20,
                   cursor: 'pointer'
                 }}
-              >x</button>
+              >
+                x
+              </button>
             </div>
           ))}
         </div>
@@ -177,47 +223,128 @@ useEffect(() => {
       <form onSubmit={handleSubmit}>
         <div className="row g-3">
 
-          {/* Здесь все остальные поля, как в твоем примере */}
-
-          <div className="col-md-4">
-            <label>Mileage</label>
-            <input type="number" name="mileage" className="form-control" value={formData.mileage} onChange={handleChange} />
-          </div>
-          <div className="col-md-4">
-            <label>Year</label>
-            <input type="number" name="year" className="form-control" value={formData.year} onChange={handleChange} />
-          </div>
-          <div className="col-md-4">
-            <label>Engine Size</label>
-            <input type="number" name="engineSize" className="form-control" value={formData.engineSize} onChange={handleChange} />
-          </div>
-          <div className="col-md-4">
-            <label>Doors</label>
-            <input type="number" name="door" className="form-control" value={formData.door} onChange={handleChange} />
-          </div>
-          <div className="col-md-4">
-            <label>Cylinders</label>
-            <input type="number" name="cylinder" className="form-control" value={formData.cylinder} onChange={handleChange} />
-          </div>
-          <div className="col-md-4">
-            <label>Price</label>
-            <input type="number" step="0.01" name="price" className="form-control" value={formData.price} onChange={handleChange} />
-          </div>
           <div className="col-md-4">
             <label>Brand</label>
-            <input type="text" name="brand" className="form-control" value={formData.brand} onChange={handleChange} />
+            <select
+              name="brand"
+              className="form-select"
+              value={formData.brand}
+              onChange={handleBrandChange}
+            >
+              <option value="">Select brand</option>
+              {brands.map(b => (
+                <option key={b.id} value={String(b.id)}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div className="col-md-4">
             <label>Model</label>
-            <input type="text" name="model" className="form-control" value={formData.model} onChange={handleChange} />
+            <select
+              name="model"
+              className="form-select"
+              value={formData.model}
+              onChange={handleChange}
+              disabled={!formData.brand}
+            >
+              <option value="">Select model</option>
+              {models.map(m => (
+                <option key={m.id} value={m.name}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {/* Остальные поля */}
+          <div className="col-md-4">
+            <label>Mileage</label>
+            <input
+              type="number"
+              name="mileage"
+              className="form-control"
+              value={formData.mileage}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label>Year</label>
+            <input
+              type="number"
+              name="year"
+              className="form-control"
+              value={formData.year}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label>Engine Size</label>
+            <input
+              type="number"
+              name="engineSize"
+              className="form-control"
+              value={formData.engineSize}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label>Doors</label>
+            <input
+              type="number"
+              name="door"
+              className="form-control"
+              value={formData.door}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label>Cylinders</label>
+            <input
+              type="number"
+              name="cylinder"
+              className="form-control"
+              value={formData.cylinder}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label>Price</label>
+            <input
+              type="number"
+              step="0.01"
+              name="price"
+              className="form-control"
+              value={formData.price}
+              onChange={handleChange}
+            />
+          </div>
+
           <div className="col-md-4">
             <label>VIN</label>
-            <input type="text" name="vin" className="form-control" value={formData.vin} onChange={handleChange} />
+            <input
+              type="text"
+              name="vin"
+              className="form-control"
+              value={formData.vin}
+              onChange={handleChange}
+            />
           </div>
+
           <div className="col-md-4">
             <label>Color</label>
-            <select name="color" className="form-select" value={formData.color} onChange={handleChange}>
+            <select
+              name="color"
+              className="form-select"
+              value={formData.color}
+              onChange={handleChange}
+            >
               <option value="">Select color</option>
               <option value="Black">Black</option>
               <option value="White">White</option>
@@ -227,17 +354,29 @@ useEffect(() => {
               <option value="Other">Other</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Transmission</label>
-            <select name="transmission" className="form-select" value={formData.transmission} onChange={handleChange}>
+            <select
+              name="transmission"
+              className="form-select"
+              value={formData.transmission}
+              onChange={handleChange}
+            >
               <option value="">Select transmission</option>
               <option value="Automatic">Automatic</option>
               <option value="Manual">Manual</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Fuel Type</label>
-            <select name="fuelType" className="form-select" value={formData.fuelType} onChange={handleChange}>
+            <select
+              name="fuelType"
+              className="form-select"
+              value={formData.fuelType}
+              onChange={handleChange}
+            >
               <option value="">Select fuel type</option>
               <option value="Petrol">Petrol</option>
               <option value="Diesel">Diesel</option>
@@ -245,18 +384,30 @@ useEffect(() => {
               <option value="Electric">Electric</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Drive Type</label>
-            <select name="driverType" className="form-select" value={formData.driverType} onChange={handleChange}>
+            <select
+              name="driverType"
+              className="form-select"
+              value={formData.driverType}
+              onChange={handleChange}
+            >
               <option value="">Select drive type</option>
               <option value="FWD">FWD</option>
               <option value="RWD">RWD</option>
               <option value="AWD">AWD</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Condition</label>
-            <select name="condition" className="form-select" value={formData.condition} onChange={handleChange}>
+            <select
+              name="condition"
+              className="form-select"
+              value={formData.condition}
+              onChange={handleChange}
+            >
               <option value="">Select condition</option>
               <option value="New">New</option>
               <option value="Used">Used</option>
@@ -266,12 +417,23 @@ useEffect(() => {
 
           <div className="col-md-12">
             <label>New Photos (multiple)</label>
-            <input type="file" multiple className="form-control" onChange={handleFileChange} />
+            <input
+              type="file"
+              multiple
+              className="form-control"
+              onChange={handleFileChange}
+            />
           </div>
 
           <div className="col-md-12 mt-3">
             <label>Description</label>
-            <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={4} />
+            <textarea
+              name="description"
+              className="form-control"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+            />
           </div>
 
         </div>

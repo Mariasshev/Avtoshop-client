@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function AddCarForm() {
   const [formData, setFormData] = useState({
@@ -17,9 +17,48 @@ export function AddCarForm() {
     vin: '',
     price: '',
     description: '',
-    isOnStock: 1 // если у тебя в DTO есть это поле
+    isOnStock: 1
   });
   const [photos, setPhotos] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [models, setModels] = useState([]);
+
+  // Загрузка брендов при монтировании
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands`)
+      .then(res => res.json())
+      .then(data => {
+        console.log('Fetched brands:', data); // 🐞 Лог для проверки брендов
+        setBrands(data);
+      })
+      .catch(err => console.error('Failed to fetch brands:', err));
+  }, []);
+
+  // Загрузка моделей при выборе бренда
+  useEffect(() => {
+    if (formData.brand) {
+      fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands/${formData.brand}/models`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('Fetched models:', data); // 🐞 Лог для проверки моделей
+          setModels(data);
+        })
+        .catch(err => console.error('Failed to fetch models:', err));
+    } else {
+      setModels([]);
+    }
+  }, [formData.brand]);
+
+const handleBrandChange = (e) => {
+  const selectedBrandId = e.target.value;
+  console.log('Selected brandId:', selectedBrandId); // добавь лог
+  setFormData(prev => ({
+    ...prev,
+    brand: selectedBrandId,
+    model: '' // сбрасываем модель при смене бренда
+  }));
+};
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -33,58 +72,107 @@ export function AddCarForm() {
     setPhotos(Array.from(e.target.files));
   };
 
+
   const handleSubmit = async (e) => {
   e.preventDefault();
 
+  console.log('Submitting formData:', formData); // 🐞 Проверяем данные перед отправкой
+
+  // Проверка обязательных полей
+  if (!formData.brand || formData.brand === "0") {
+    alert('Please select a brand');
+    console.error('Brand is missing or invalid:', formData.brand); // 🐞
+    return;
+  }
+
+  if (!formData.model || formData.model === "0") {
+    alert('Please select a model');
+    console.error('Model is missing or invalid:', formData.model);
+    return;
+  }
+
+  if (!formData.year) {
+    alert('Please enter the year');
+    console.error('Year is missing');
+    return;
+  }
+
+  if (!formData.price) {
+    alert('Please enter the price');
+    console.error('Price is missing');
+    return;
+  }
+
   const data = new FormData();
-  // append все поля формы
+
+  // Берем выбранные бренд и модель по id
+  const selectedBrand = brands.find(b => b.id.toString() === formData.brand);
+  const selectedModel = models.find(m => m.id.toString() === formData.model);
+
+
+  if (!selectedBrand) {
+    alert('Selected brand not found in brand list');
+    console.error('Brand not found in list:', formData.brand);
+    return;
+  }
+
+  if (!selectedModel) {
+    alert('Selected model not found in model list');
+    console.error('Model not found in list:', formData.model);
+    return;
+  }
+
+  // Добавляем все остальные поля, кроме brand и model
   Object.entries(formData).forEach(([key, value]) => {
-    data.append(key, value);
+    if (key !== 'brand' && key !== 'model') {
+      data.append(key, value);
+    }
   });
 
-  // append фотографии
-  photos.forEach((photo) => {
-    data.append('Photos', photo); // имя с большой буквы, как в CarCreateDto
-  });
+  // Добавляем BrandId как число
+  data.append('BrandId', parseInt(formData.brand, 10));
+  // Добавляем название модели
+  data.append('Model', selectedModel.name);
 
-//   if (isUpdate) {
-//     data.append('PhotosToDelete', JSON.stringify(photosToDelete));
-//   }
+  // Проверка и добавление фото
+  if (photos.length === 0) {
+    alert('Please upload at least one photo');
+    console.error('No photos selected');
+    return;
+  }
+  photos.forEach(photo => data.append('Photos', photo));
+
+  // Логируем, что реально уйдёт на сервер
+  for (let pair of data.entries()) {
+    console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+  }
 
   try {
     const token = localStorage.getItem('token');
-    console.log('Token:', token); // для проверки
+    if (!token) {
+      alert('You are not authorized. Please log in.');
+      console.error('No auth token found');
+      return;
+    }
 
     const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/add`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: data,
+      headers: { Authorization: `Bearer ${token}` },
+      body: data
     });
 
     if (response.ok) {
+        console.log("Brand "+ formData.brand);
       alert('Car successfully added!');
-      // очистим форму
+      // Сброс формы
       setFormData({
-        mileage: '',
-        year: '',
-        transmission: '',
-        fuelType: '',
-        brand: '',
-        model: '',
-        driverType: '',
-        condition: '',
-        engineSize: '',
-        door: '',
-        cylinder: '',
-        color: '',
-        vin: '',
-        price: '',
-        description: '',
-        isOnStock: 1
+        mileage: '', year: '', transmission: '', fuelType: '',
+        brand: '', model: '', driverType: '', condition: '',
+        engineSize: '', door: '', cylinder: '', color: '',
+        vin: '', price: '', description: '', isOnStock: 1
       });
       setPhotos([]);
+      setModels([]);
     } else {
       const errorText = await response.text();
       console.error('Server error:', errorText);
@@ -94,9 +182,6 @@ export function AddCarForm() {
     console.error('Network error:', error);
     alert('Network error');
   }
-//   if (isUpdate) {
-//   data.append('PhotosToDelete', JSON.stringify(photosToDelete));
-// }
 };
 
 
@@ -104,43 +189,64 @@ export function AddCarForm() {
     <div className="container-lg my-5">
       <h2 className="mb-4">Add New Car</h2>
       <form onSubmit={handleSubmit}>
-        <div className="row g-3 ">
+        <div className="row g-3">
           <div className="col-md-4">
-            <label>Mileage</label>
-            <input type="number" name="mileage" className="form-control" value={formData.mileage} onChange={handleChange} />
+            <label>Brand</label>
+            <select name="brand" className="form-select" value={formData.brand} onChange={handleBrandChange}>
+  <option value="">Select brand</option>
+  {brands.map(b => (
+    <option key={b.id} value={b.id}>{b.name}</option>
+  ))}
+</select>
+
           </div>
+
+          <div className="col-md-4">
+            <label>Model</label>
+            <select name="model" className="form-select" value={formData.model} onChange={handleChange} disabled={!formData.brand}>
+              <option value="">Select model</option>
+              {models.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Оставшиеся твои поля без изменений */}
           <div className="col-md-4">
             <label>Year</label>
             <input type="number" name="year" className="form-control" value={formData.year} onChange={handleChange} />
           </div>
+
+          <div className="col-md-4">
+            <label>Mileage</label>
+            <input type="number" name="mileage" className="form-control" value={formData.mileage} onChange={handleChange} />
+          </div>
+
           <div className="col-md-4">
             <label>Engine Size</label>
             <input type="number" step="0.1" name="engineSize" className="form-control" value={formData.engineSize} onChange={handleChange} />
           </div>
+
           <div className="col-md-4">
             <label>Doors</label>
             <input type="number" name="door" className="form-control" value={formData.door} onChange={handleChange} />
           </div>
+
           <div className="col-md-4">
             <label>Cylinders</label>
             <input type="number" name="cylinder" className="form-control" value={formData.cylinder} onChange={handleChange} />
           </div>
+
           <div className="col-md-4">
             <label>Price</label>
             <input type="number" step="0.01" name="price" className="form-control" value={formData.price} onChange={handleChange} />
           </div>
-          <div className="col-md-4">
-            <label>Brand</label>
-            <input type="text" name="brand" className="form-control" value={formData.brand} onChange={handleChange} />
-          </div>
-          <div className="col-md-4">
-            <label>Model</label>
-            <input type="text" name="model" className="form-control" value={formData.model} onChange={handleChange} />
-          </div>
+
           <div className="col-md-4">
             <label>VIN</label>
             <input type="text" name="vin" className="form-control" value={formData.vin} onChange={handleChange} />
           </div>
+
           <div className="col-md-4">
             <label>Color</label>
             <select name="color" className="form-select" value={formData.color} onChange={handleChange}>
@@ -153,6 +259,7 @@ export function AddCarForm() {
               <option value="Other">Other</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Transmission</label>
             <select name="transmission" className="form-select" value={formData.transmission} onChange={handleChange}>
@@ -161,6 +268,7 @@ export function AddCarForm() {
               <option value="Manual">Manual</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Fuel Type</label>
             <select name="fuelType" className="form-select" value={formData.fuelType} onChange={handleChange}>
@@ -171,6 +279,7 @@ export function AddCarForm() {
               <option value="Electric">Electric</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Drive Type</label>
             <select name="driverType" className="form-select" value={formData.driverType} onChange={handleChange}>
@@ -180,6 +289,7 @@ export function AddCarForm() {
               <option value="AWD">AWD</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Condition</label>
             <select name="condition" className="form-select" value={formData.condition} onChange={handleChange}>
@@ -189,29 +299,20 @@ export function AddCarForm() {
               <option value="Damaged">Damaged</option>
             </select>
           </div>
+
           <div className="col-md-4">
             <label>Photos (multiple)</label>
             <input type="file" multiple className="form-control" onChange={handleFileChange} />
           </div>
         </div>
-        <div className="col-md-12 mt-3">
-  <label>Description</label>
-  <p className='fw-bold'>!This field does not allow: <br></br>
-<span className='text-danger fw-normal'>Leaving links or contact information</span><br></br>
-<span className='text-danger fw-normal'>Offering services</span></p>
-  <textarea
-    name="description"
-    className="form-control"
-    value={formData.description}
-    onChange={handleChange}
-    rows={4}
-  />
-</div>
 
+        <div className="col-md-12 mt-3">
+          <label>Description</label>
+          <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={4} />
+        </div>
 
         <button type="submit" className="btn btn-primary mt-4">Add Car</button>
       </form>
     </div>
   );
-};
-
+}

@@ -14,6 +14,15 @@ export function ProfilePage() {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const [brands, setBrands] = useState([]);
+
+  useEffect(() => {
+    fetch('https://localhost:7141/api/CarBrands')
+      .then(res => res.json())
+      .then(data => setBrands(data))
+      .catch(err => console.error(err));
+  }, []);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -300,10 +309,28 @@ useEffect(() => {
     navigate(`/cars/edit/${id}`);
   };
 
-const handleDelete = (id) => {
-  console.log('Delete listing:', id);
+  const handleDelete = async (id) => {
+    if (!window.confirm('Вы уверены, что хотите удалить объявление?')) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        // Удалить из состояния список
+        setListings(prev => prev.filter(item => item.id !== id));
+        alert('Объявление успешно удалено');
+      } else {
+        alert('Ошибка при удалении объявления');
+      }
+    } catch (err) {
+      alert('Ошибка сети: ' + err.message);
+    }
+  };
   // логика удаления
-};
 
   return (
     <div className="page-wrapper d-flex flex-column min-vh-100">
@@ -528,6 +555,7 @@ const handleDelete = (id) => {
                               <MyListingItem 
                                 key={listing.id} 
                                 listing={listing} 
+                                brands={brands}
                                 onEdit={handleEdit} 
                                 onDelete={handleDelete} 
                               />
@@ -543,6 +571,7 @@ const handleDelete = (id) => {
                         <MyListingItem 
                           key={listing.id} 
                           listing={listing} 
+                          brands={brands}
                           onEdit={handleEdit} 
                           onDelete={handleDelete} 
                         />

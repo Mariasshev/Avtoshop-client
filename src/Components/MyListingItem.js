@@ -1,7 +1,7 @@
 import React from 'react';
 
-export function MyListingItem({ listing, onEdit, onDelete }) {
-    //console.log('Исходный photoUrl:', `http://localhost:7141${listing.photo}`);
+export function MyListingItem({ listing, brands, onEdit, onDelete }) {
+    const brand = brands.find(b => b.id === listing.brandId);
   return (
     <>
       {/* Desktop view */}
@@ -21,12 +21,13 @@ export function MyListingItem({ listing, onEdit, onDelete }) {
         <td>
           <img 
             src={`https://localhost:7141${listing.photo}`} 
-            alt={`${listing.brand} ${listing.model}`} 
+            alt={`${brand ? brand.name : listing.brandId} ${listing.model}`} 
             className="img-fluid rounded" 
             style={{ maxWidth: '80px' }} 
           />
         </td>
-        <td>{`${listing.brand} ${listing.model}`}</td>
+        
+        <td>{`${brand ? brand.name : listing.brandId} ${listing.model}`}</td>
         <td>{`$${listing.price}`}</td>
         <td>
         <span className={`badge ${listing.status === 'Approved' ? 'bg-success' : 'bg-success'}`}>
