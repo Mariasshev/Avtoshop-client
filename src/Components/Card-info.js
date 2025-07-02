@@ -1,12 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import calendarIcon from '../assets/image/car-info/calendar-icon.svg';
 import mileageIcon from '../assets/image/car-info/mileage-icon.svg';
 import petrolIcon from '../assets/image/car-info/petrol-icon.svg';
 import typeIcon from '../assets/image/car-info/type-icon.svg';
 
-import saveIcon from '../assets/image/car-info/save-icon.svg';
-
-import bodyIcon from '../assets/image/car-info/body-icon.svg';
 import mileageBlackIcon from '../assets/image/car-info/mileage-black-icon.svg';
 import petrolBlackIcon from '../assets/image/car-info/petrol-black-icon.svg';
 import yearIcon from '../assets/image/car-info/year-icon.svg';
@@ -21,14 +18,64 @@ import vinIcon from '../assets/image/car-info/vin-icon.svg';
 import phoneIcon from '../assets/image/car-info/phone-icon.svg';
 import offerIcon from '../assets/image/car-info/offer-icon.svg';
 import getDirectionIcon from '../assets/image/car-info/get-direction-icon.svg';
-import adminPhoto from '../assets/image/car-info/admin-photo.png';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
-import slider1Img from '../assets/image/car-info/slider-img/1.png';
-//import { Map } from "./map";
-import { FinancingCalc } from "./Financing-calc";
+import { CarCardPattern } from './CarCardPattern';
 
-export function CarInfo({ car }) {
+export function CarInfo({ car, cars }) {
+
+  const [slidesToShowNew, setSlidesToShowNew] = useState(4);
+  const [slidesToShowFavorable, setSlidesToShowFavorable] = useState(4);
+
+  const sliderSettingsNew = {
+    slidesToShow: slidesToShowNew,
+    slidesToScroll: 1,
+    infinite: true,
+    arrows: true,
+    dots: true,
+    responsive: [
+      {
+        breakpoint: 1200,
+        settings: { slidesToShow: Math.min(slidesToShowNew, 3) }
+      },
+      {
+        breakpoint: 768,
+        settings: { slidesToShow: Math.min(slidesToShowNew, 2) }
+      },
+      {
+        breakpoint: 576,
+        settings: { slidesToShow: 1 }
+      }
+    ]
+  };
+
+  const sliderSettingsFavorable = {
+    slidesToShow: slidesToShowFavorable,
+    slidesToScroll: 1,
+    infinite: true,
+    arrows: true,
+    dots: true,
+    responsive: [
+      {
+        breakpoint: 1200,
+        settings: { slidesToShow: Math.min(slidesToShowFavorable, 3) }
+      },
+      {
+        breakpoint: 768,
+        settings: { slidesToShow: Math.min(slidesToShowFavorable, 2) }
+      },
+      {
+        breakpoint: 576,
+        settings: { slidesToShow: 1 }
+      }
+    ]
+  };
+
+
   return (
+
     <section className="">
       <div className="container py-0 py-md-5">
         <nav aria-label="breadcrumb">
@@ -39,7 +86,7 @@ export function CarInfo({ car }) {
           </ol>
         </nav>
         <h2 className="dm-sans-bold" data-aos="fade-up" data-aos-delay="200">{`${car?.brand} ${car?.model}`}</h2>
-      
+
         <div className="row">
           <div className="col-12 col-md-8 col-lg-6" data-aos="fade-up" data-aos-delay="300">
             <div className="row gy-2 gx-1">
@@ -66,14 +113,14 @@ export function CarInfo({ car }) {
             </div>
           </div>
           <div className="col-12 col-md-4 col-lg-6" data-aos="fade-up" data-aos-delay="300">
-              <div className="text-end ft-15">Add to favourites<button className="btn border-0"><i className="bi bi-suit-heart"></i></button></div>
+            <div className="text-end ft-15">Add to favourites<button className="btn border-0"><i className="bi bi-suit-heart"></i></button></div>
           </div>
         </div>
 
         <div className="row pt-3">
           <div className="col-12 col-lg-8" data-aos="fade-up" data-aos-delay="400">
             <div>
-              <img src={`https://localhost:7141${car.photo}`}  className="img-fluid border-16" alt={`${car?.brand} ${car?.model}` || 'Car image'} />
+              <img src={`https://localhost:7141${car.photo}`} className="img-fluid border-16" alt={`${car?.brand} ${car?.model}` || 'Car image'} />
             </div>
 
             <div className="row mt-3">
@@ -82,7 +129,7 @@ export function CarInfo({ car }) {
               </div>
             </div>
 
-            <div className="row pt-4 pb-4" data-aos="fade-up" data-aos-delay="500">
+            <div className="row pt-4 pb-4" data-aos="fade-up" data-aos-delay="300">
 
               <div className="col-lg-3 col-6 fw-bold pb-3"><img src={conditionIcon} alt="Condition" /> Condition:</div>
               <div className="col-lg-3 col-6">{car?.condition || '-'}</div>
@@ -119,15 +166,12 @@ export function CarInfo({ car }) {
             </div>
             <hr />
 
-            <div className="row pt-3" data-aos="fade-up" data-aos-delay="600">
+            <div className="row pt-3" data-aos="fade-up" data-aos-delay="300">
               <div className="col-12 fw-bold ft-26 pb-2">
                 Description
               </div>
               <div className="pt-2">
-                <p>{car?.description || '-'}</p>
-              </div>
-              <div>
-                {car?.longDescription || '-'}
+                <p>{car?.description || 'No description'}</p>
               </div>
               <div>
                 {/* <div className="d-grid gap-2 col-12 col-md-4 pt-3">
@@ -139,10 +183,11 @@ export function CarInfo({ car }) {
             </div>
             <hr />
 
-            <FinancingCalc />
+            {/* <FinancingCalc /> */}
           </div>
 
-          <div className="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="2000">
+
+          <div className="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="200">
             <div className="pt-lg-0 pt-5">
               <div className="border-btn1 border-16">
                 <div className="row m-3 pt-2 pb-2">
@@ -169,16 +214,16 @@ export function CarInfo({ car }) {
               </div>
             </div>
 
-            <div className="pt-4 pb-5" data-aos="fade-up" data-aos-delay="3000">
+            <div className="pt-4 pb-5" data-aos="fade-up" data-aos-delay="200">
               <div className="border-btn1 border-16">
                 <div className="row m-2 pt-2 pb-2">
 
                   <div className="col-12">
                     <img
-                    src={`https://localhost:7141${car.salerPhoto}`}
-                    alt="Admin"
-                    className="saler-photo"
-                  />
+                      src={`https://localhost:7141${car.salerPhoto}`}
+                      alt="Admin"
+                      className="saler-photo"
+                    />
 
                     <p className="m-0 ft-20 dm-sans-medium mb-2">{car.salerName || 'admin'}</p>
                   </div>
@@ -192,14 +237,11 @@ export function CarInfo({ car }) {
                     </div>
                   </div>
 
-                  <div className="d-grid gap-2 col-11 mx-auto pb-3">
+                  <div className="d-grid gap-2 col-11 mx-auto pb-2">
                     <button className="btn btn-primary h55" type="button"> Message Dealer <i className="bi bi-arrow-up-right"></i></button>
                   </div>
                   <div className="d-grid gap-2 col-11 mx-auto pb-3">
-                    <button className="btn btn-outline-success h55" type="button"> Chat Via Whatsapp  <i className="bi bi-arrow-up-right"></i></button>
-                  </div>
-                  <div className="text-center">
-                    <a href="">View All stock at this dealer <i className="bi bi-arrow-up-right"></i></a>
+                    <button className="btn btn-outline-success h55" type="button">View All stock at this dealer <i className="bi bi-arrow-up-right"></i></button>
                   </div>
 
                 </div>
@@ -207,7 +249,106 @@ export function CarInfo({ car }) {
             </div>
           </div>
         </div>
+
+
+      </div>
+
+      <div className="container mb-5 pb-4">
+        {/* 1 slider */}
+        <div className="row mt-3">
+          <div className="col-12">
+            <div className="d-flex justify-content-between mb-3">
+              <div className="d-flex align-items-center">
+                <h2 className="mb-0">New cars</h2>
+                <div className="ms-2 align-middle d-flex align-items-center">
+                  <button
+                    className={`btn btn-sm px-3 rounded-2 ${setSlidesToShowNew === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                    onClick={() => setSlidesToShowNew(4)}
+                  >
+                    sm
+                  </button>
+                  <button
+                    className={`btn btn-sm ms-1 px-3 rounded-2 ${setSlidesToShowNew === 3 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                    onClick={() => setSlidesToShowNew(3)}
+                  >
+                    lg
+                  </button>
+                </div>
+
+              </div>
+
+              <div>
+                <button
+                  className={`btn btn-md px-3 btn-success rounded-2 ms-1`}
+                >
+                  Add my car
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="slider-wrapper">
+
+            <Slider {...sliderSettingsNew}>
+              {cars.filter(car => car.badge?.trim().toLowerCase() === "new").map(car => (
+                <CarCardPattern
+                  key={car.id}
+                  car={car}
+                  data-aos="fade-up"
+                  data-aos-delay={`${400 + car.id * 100}`}
+                />
+              ))}
+            </Slider>
+
+          </div>
+
+        </div>
+
+        {/* 2 slider */}
+        <div className="row mt-5">
+          <div className="col-12">
+            <div className="d-flex justify-content-between">
+              <h2>Favorable price</h2>
+              <div>
+                <button
+                  className={`btn btn-sm px-3 rounded-2 ${setSlidesToShowFavorable === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                  onClick={() => setSlidesToShowFavorable(4)}
+                >
+                  sm
+                </button>
+                <button
+                  className={`btn btn-sm ms-1 px-3 rounded-2 ${setSlidesToShowFavorable === 3 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                  onClick={() => setSlidesToShowFavorable(3)}
+                >
+                  lg
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div className="row">
+          <div className="slider-wrapper">
+
+            <Slider {...sliderSettingsFavorable}>
+              {cars.filter(car => car.badge?.trim().toLowerCase() === "new").map(car => (
+                <CarCardPattern
+                  key={car.id}
+                  car={car}
+                  data-aos="fade-up"
+                  data-aos-delay={`${400 + car.id * 100}`}
+                />
+              ))}
+            </Slider>
+
+          </div>
+
+        </div>
+
       </div>
     </section>
+
   );
 }

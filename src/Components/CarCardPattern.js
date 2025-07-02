@@ -6,15 +6,16 @@ import { Link } from 'react-router-dom';
 
 export function CarCardPattern({ car }) {
     return (
-        <div className="col-12 col-md-6 col-lg-4 col-xl-3" data-aos="fade-up" data-aos-delay="200">
+        //<div className="col-12 col-md-6 col-lg-4 col-xl-3" data-aos="fade-up" data-aos-delay="200">
+        <div className="" data-aos="fade-up" data-aos-delay="200">
             <Link to={`/cars/${car.id}`}>
                 <div className="card">
                     <div className="position-relative">
                         <div className='my-card-img-top'>
                             <img src={`https://localhost:7141${car.photo}`} className="my-card-img" alt={`${car.title}`} />
                         </div>
-                        
-                    
+
+
                         {car.badge && (
                             <span className={`badge ${car.badge === 'Great Price' ? 'bg-green-1' : 'bg-blue'} text-white position-absolute py-2 px-3 dm-sans-medium ft-15 border-30`} style={{ top: '15px', left: '10px' }}>
                                 {car.badge}
@@ -23,7 +24,7 @@ export function CarCardPattern({ car }) {
                     </div>
                     <div className="card-body">
                         <h5 className="card-title ft-18 mb-1 dm-sans-medium primary-color">
-                            {car.title}
+                            {`${car.brand} ${car.model}`}
                         </h5>
                         <div className="row justify-content-center">
                             <div className="col-4 text-center">
