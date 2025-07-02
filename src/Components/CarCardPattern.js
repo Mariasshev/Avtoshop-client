@@ -37,24 +37,25 @@ export function CarCardPattern({ car }) {
                         {`${car.brand} ${car.model}`}
                     </h5>
                     <div className="row justify-content-center">
-                        <div className="col-4 text-center">
-                            <img src={mileageIcon} alt="Mileage Icon" className="fs-2" />
-                            <p className="ft-15">{car.mileage} км</p>
+                        <div className="col-12 col-md-4 d-flex d-md-block align-items-center">
+                            <img src={mileageIcon} alt="Mileage Icon" className="fs-2 me-2 me-md-0" />
+                            <p className="ft-15 mb-0 mb-md-1">{car.mileage} км</p>
                         </div>
-                        <div className="col-4 text-center">
-                            <img src={petrolIcon} alt="Fuel Icon" className="fs-2" />
-                            <p className="ft-15">{car.fuel}</p>
+                        <div className="col-12 col-md-4 d-flex d-md-block align-items-center">
+                            <img src={petrolIcon} alt="Fuel Icon" className="fs-2 me-2 me-md-0" />
+                            <p className="ft-15 mb-0 mb-md-1">{car.fuel}</p>
                         </div>
-                        <div className="col-4 text-center">
-                            <img src={typeIcon} alt="Transmission Icon" className="fs-2" />
-                            <p className="ft-15">{car.transmission}</p>
+                        <div className="col-12 col-md-4 d-flex d-md-block align-items-center">
+                            <img src={typeIcon} alt="Transmission Icon" className="fs-2 me-2 me-md-0" />
+                            <p className="ft-15 mb-0 mb-md-1">{car.transmission}</p>
                         </div>
                     </div>
-                    <div className="row pt-3">
+
+                    <div className="row pt-2">
                         <div className="col-6">
-                            <h4 className="dm-sans-bold mb-0">${car.price}</h4>
+                            <h4 className="dm-sans-bold mb-1">${car.price}</h4>
                         </div>
-                        <div className="col-6 text-end">
+                        <div className="col-12 col-md-6 text-start text-md-end">
                             <p className="ft-15 blue-color dm-sans-medium mb-0 view-det">View Details <i className="bi bi-arrow-up-right"></i></p>
                         </div>
                     </div>

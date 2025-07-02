@@ -47,27 +47,28 @@ export function CarsList({ limit }) {
                             <li className="nav-item dm-sans-medium">
                                 <a className="nav-link active">Recent Cars</a>
                             </li>
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                                 <a className="nav-link">Featured Cars</a>
                             </li>
                             <li className="nav-item">
                                 <a className="nav-link">Popular Cars</a>
-                            </li>
+                            </li> */}
                         </ul>
                     </div>
                     <div className="col-12 mt-5" data-aos="fade-up" data-aos-delay="400">
-                        <div className="row gx-3 gy-3">
+                        <div className="row gx-1 gx-md-3 gy-3">
                             {cars.map(car => (
-                                <CarCardPattern
-                                    key={car.id}
-                                    car={car}
-                                    data-aos="fade-up"
-                                    data-aos-delay={`${400 + car.Id * 100}`}
-                                />
+                                <div className='col-6 col-md-6 col-lg-4 col-xl-3' key={car.id}>
+                                    <CarCardPattern
+                                        car={car}
+                                        data-aos="fade-up"
+                                        data-aos-delay={`${400 + car.id * 100}`}
+                                    />
+                                </div>
                             ))}
-
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>

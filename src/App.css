@@ -31,6 +31,10 @@
     overflow: hidden;
 }
 
+.ft-12 {
+    font-size: 12px;
+}
+
 .my-card-img {
     width: 100%;
     height: 100%;
