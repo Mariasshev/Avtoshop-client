@@ -262,13 +262,13 @@ export function CarInfo({ car, cars }) {
                 <h2 className="mb-0">New cars</h2>
                 <div className="ms-2 align-middle d-flex align-items-center">
                   <button
-                    className={`btn btn-sm px-3 rounded-2 ${setSlidesToShowNew === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                    className={`btn btn-sm px-3 rounded-2 ${slidesToShowNew === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                     onClick={() => setSlidesToShowNew(4)}
                   >
                     sm
                   </button>
                   <button
-                    className={`btn btn-sm ms-1 px-3 rounded-2 ${setSlidesToShowNew === 3 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                    className={`btn btn-sm ms-1 px-3 rounded-2 ${slidesToShowNew === 3 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                     onClick={() => setSlidesToShowNew(3)}
                   >
                     lg
@@ -281,7 +281,7 @@ export function CarInfo({ car, cars }) {
                 <button
                   className={`btn btn-md px-3 btn-success rounded-2 ms-1`}
                 >
-                  Add my car
+                  Add new car
                 </button>
               </div>
 
@@ -313,13 +313,13 @@ export function CarInfo({ car, cars }) {
               <h2>Favorable price</h2>
               <div>
                 <button
-                  className={`btn btn-sm px-3 rounded-2 ${setSlidesToShowFavorable === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                  className={`btn btn-sm px-3 rounded-2 ${slidesToShowFavorable === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                   onClick={() => setSlidesToShowFavorable(4)}
                 >
                   sm
                 </button>
                 <button
-                  className={`btn btn-sm ms-1 px-3 rounded-2 ${setSlidesToShowFavorable === 3 ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                  className={`btn btn-sm ms-1 px-3 rounded-2 ${slidesToShowFavorable === 3 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                   onClick={() => setSlidesToShowFavorable(3)}
                 >
                   lg
