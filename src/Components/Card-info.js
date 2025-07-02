@@ -30,6 +30,7 @@ import { CarCardPattern } from './CarCardPattern';
 export function CarInfo({ car, cars }) {
 
   const [showAddCarForm, setShowAddCarForm] = useState(false);
+
   const navigate = useNavigate();
 
   const handleAddCarClick = () => {
@@ -67,20 +68,22 @@ export function CarInfo({ car, cars }) {
       customClass: {
         popup: 'rounded-4',
         title: 'fw-bold',
-        confirmButton: 'btn btn-dark px-3 ms-1',
-        cancelButton: 'btn btn-outline-dark px-3'
+        confirmButton: 'btn btn-dark mx-2',
+        cancelButton: 'btn btn-outline-dark mx-2'
       },
       buttonsStyling: false,
       background: '#fff',
       color: '#050B20',
     }).then((result) => {
       if (result.isConfirmed) {
-        navigate("/login-form");
+        navigate("/login-form"); // откроется со вкладкой логин по умолчанию
       } else if (result.dismiss === Swal.DismissReason.cancel) {
-        navigate("/login-form");
+        navigate("/login-form?tab=register");
+
       }
     });
   };
+
 
   const [slidesToShowNew, setSlidesToShowNew] = useState(4);
   const [slidesToShowFavorable, setSlidesToShowFavorable] = useState(4);

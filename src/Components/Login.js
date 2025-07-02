@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -21,8 +22,14 @@ export function Login() {
     const [loginError, setLoginError] = useState("");
     const [loginSuccess, setLoginSuccess] = useState("");
 
-    const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const initialTab = queryParams.get('tab') || 'sign-in';
 
+    const [activeTab, setActiveTab] = useState(initialTab);
+
+
+    const togglePasswordVisibility = () => setShowPassword(prev => !prev);
 
     const { setIsAuth, setUser } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -127,16 +134,34 @@ export function Login() {
         <div className="container form-container py-5">
             <ul className="nav nav-tabs mb-3" role="tablist">
                 <li className="nav-item" role="presentation">
-                    <button className="nav-link dm-sans-medium ft-16 active" id="sign-in-tab" data-bs-toggle="tab" data-bs-target="#sign-in" type="button" role="tab">Sign in</button>
+                    <button
+                        className={`nav-link dm-sans-medium ft-16 ${activeTab === 'sign-in' ? 'active' : ''}`}
+                        id="sign-in-tab"
+                        type="button"
+                        role="tab"
+                        onClick={() => setActiveTab('sign-in')}
+                    >
+                        Sign in
+                    </button>
                 </li>
                 <li className="nav-item" role="presentation">
-                    <button className="nav-link dm-sans-medium ft-16" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Register</button>
+                    <button
+                        className={`nav-link dm-sans-medium ft-16 ${activeTab === 'register' ? 'active' : ''}`}
+                        id="register-tab"
+                        type="button"
+                        role="tab"
+                        onClick={() => setActiveTab('register')}
+                    >
+                        Register
+                    </button>
                 </li>
             </ul>
 
+
             <div className="tab-content">
                 {/* Sign In */}
-                <div className="tab-pane fade show active" id="sign-in">
+                <div className={`tab-pane fade ${activeTab === 'sign-in' ? 'show active' : ''}`} id="sign-in">
+
                     <form onSubmit={handleLogin}>
                         {/* Email Input */}
                         <div className="mb-3 form-floating">
@@ -166,7 +191,7 @@ export function Login() {
                                 style={{ cursor: 'pointer' }}
                                 onClick={togglePasswordVisibility}
                             >
-                            <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
+                                <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
                             </span>
                         </div>
 
@@ -180,7 +205,7 @@ export function Login() {
                 </div>
 
                 {/* Register */}
-                <div className="tab-pane fade" id="register">
+                <div className={`tab-pane fade ${activeTab === 'register' ? 'show active' : ''}`} id="register">
                     <form onSubmit={handleRegister}>
                         <div className="form-floating mb-3">
                             <input
@@ -234,7 +259,7 @@ export function Login() {
                                 style={{ cursor: 'pointer' }}
                                 onClick={() => setShowPassword(prev => !prev)}
                             >
-                            <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
+                                <i className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`}></i>
                             </span>
                         </div>
 
@@ -254,7 +279,7 @@ export function Login() {
                                 style={{ cursor: 'pointer' }}
                                 onClick={() => setShowConfirm(prev => !prev)}
                             >
-                            <i className={`bi ${showConfirm ? 'bi-eye' : 'bi-eye-slash'}`}></i>
+                                <i className={`bi ${showConfirm ? 'bi-eye' : 'bi-eye-slash'}`}></i>
                             </span>
                         </div>
 
