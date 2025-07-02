@@ -174,20 +174,21 @@ export function CarInfo({ car }) {
                 <div className="row m-3 pt-2 pb-2">
 
                   <div className="col-12">
-                    <img src={adminPhoto} alt="Admin" />
-                    <p className="m-0 ft-20 dm-sans-medium">{car?.dealerName || 'admin'}</p>
-                  </div>
+                    <img
+                    src={`https://localhost:7141${car.salerPhoto}`}
+                    alt="Admin"
+                    className="saler-photo"
+                  />
 
-                  <div className="col-12">
-                    <p className="">{car?.dealerAddress || '943 Broadway, Brooklyn'}</p>
+                    <p className="m-0 ft-20 dm-sans-medium mb-2">{car.salerName || 'admin'}</p>
                   </div>
 
                   <div className="row">
                     <div className="col-6">
-                      <p className="ft-15"><img src={getDirectionIcon} alt="Direction" /> Get Direction</p>
+                      <p className="ft-15"><img src={getDirectionIcon} alt="Direction" /> {car?.salerAddress || ' '}</p>
                     </div>
                     <div className="col-6">
-                      <p className="ft-15"><img src={phoneIcon} alt="Phone" /> {car?.dealerPhone || '+88123456789'}</p>
+                      <p className="ft-15"><img src={phoneIcon} alt="Phone" /> {car?.salerPhone || ' '}</p>
                     </div>
                   </div>
 
