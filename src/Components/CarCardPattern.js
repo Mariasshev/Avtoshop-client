@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 export function CarCardPattern({ car }) {
     return (
         <div className="col-12 col-md-6 col-lg-4 col-xl-3" data-aos="fade-up" data-aos-delay="200">
-            <Link to={`/car-card/${car.id}`}>
+            <Link to={`/cars/${car.id}`}>
                 <div className="card">
                     <div className="position-relative">
                         <div className='my-card-img-top'>

@@ -54,7 +54,7 @@ function App() {
                     <Route path="cars-list" element={<CarsList />} />
 
                     {/* Car-card */}
-                    <Route path="car-card" element={<CarCard />} />
+                    <Route path="/cars/:id" element={<CarCard />} />
 
                     {/* Blog */}
                     <Route path="blog" element={<Blog />} />
