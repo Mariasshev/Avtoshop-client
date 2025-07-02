@@ -171,7 +171,7 @@ export function CarInfo({ car }) {
 
             <div className="pt-4 pb-5" data-aos="fade-up" data-aos-delay="3000">
               <div className="border-btn1 border-16">
-                <div className="row m-3 pt-2 pb-2">
+                <div className="row m-2 pt-2 pb-2">
 
                   <div className="col-12">
                     <img
