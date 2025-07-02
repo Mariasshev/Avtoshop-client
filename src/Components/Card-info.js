@@ -319,7 +319,7 @@ export function CarInfo({ car, cars }) {
             <div className="d-flex justify-content-between mb-3">
               <div className="d-flex align-items-center">
                 <h2 className="mb-0">New cars</h2>
-                <div className="ms-2 align-middle d-flex align-items-center">
+                <div className="ms-2 align-middle d-none d-xl-block align-items-center ">
                   <button
                     className={`btn btn-sm px-3 rounded-2 ${slidesToShowNew === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                     onClick={() => setSlidesToShowNew(4)}
@@ -371,7 +371,7 @@ export function CarInfo({ car, cars }) {
           <div className="col-12">
             <div className="d-flex justify-content-between">
               <h2>Favorable price</h2>
-              <div>
+              <div className="d-none d-xl-block">
                 <button
                   className={`btn btn-sm px-3 rounded-2 ${slidesToShowFavorable === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                   onClick={() => setSlidesToShowFavorable(4)}
