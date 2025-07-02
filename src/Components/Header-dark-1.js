@@ -12,12 +12,13 @@ export function HeaderDark() {
     const { isAuth } = useContext(AuthContext);
 
     return (
-        <section className="py-3 bg-black">
+        <section className="py-3 bg-black sticky-top">
             <div className="px-3">
                 <div className="row align-items-center align-content-center">
                     <div className="col-3 col-md-5 col-lg-5 order-1">
                         <Link to="/index" className="navbar-brand dm-sans-bold text-white align-items-center">
-                            <img src={logoImg} alt="Logo"/>
+                            {/* <img src={logoImg} alt="Logo" /> */}
+                            <h3 className='fw-bold'>AUTOPORTAL</h3>
                         </Link>
                     </div>
                     <div className="col-9 col-md-7 col-lg-7 align-content-center d-flex justify-content-end order-lg-2 order-3">
@@ -33,7 +34,6 @@ export function HeaderDark() {
                                             <li><Link to="/service" className="dropdown-item">Services</Link></li>
                                             <li><Link to="/cars-list" className="dropdown-item">Cars list</Link></li>
                                             <li><Link to="/questions" className="dropdown-item">Questions</Link></li>
-                                            <li><Link to="/cart" className="dropdown-item">Cart</Link></li>
                                         </ul>
                                     </li>
 
@@ -76,16 +76,31 @@ export function HeaderDark() {
                                         <Link to="/contacts" className="nav-link text-white">Contact</Link>
                                     </li>
 
+                                    {/* favourites */}
+                                    {isAuth ? (
+                                        <li className="nav-item">
+                                            <Link to="/profile?tab=favorites" className="nav-link text-white">
+                                                My Favourites<i className='bi bi-suit-heart'></i>
+                                            </Link>
+                                        </li>
+                                    ) : (
+                                        <li className="nav-item">
+                                            <Link to="/favorites" className="nav-link text-white">
+                                                Favourites<i className='bi bi-suit-heart'></i>
+                                            </Link>
+                                        </li>
+                                    )}
+
                                     {isAuth ? (
                                         <li className="nav-item d-flex align-content-center">
                                             <Link to="/profile" className="nav-link text-white">
-                                            <i className="bi bi-person me-1"></i> My Profile
+                                                <i className="bi bi-person me-1"></i> My Profile
                                             </Link>
                                         </li>
-                                        ) : (
+                                    ) : (
                                         <li className="nav-item d-flex align-content-center">
                                             <Link to="/login-form" className="nav-link text-white">
-                                            <i className="bi bi-person me-1"></i> Sign in
+                                                <i className="bi bi-person me-1"></i> Sign in
                                             </Link>
                                         </li>
                                     )}
@@ -139,18 +154,18 @@ export function HeaderDark() {
                         <li><Link to="/about-us">About</Link></li>
                         <li><Link to="/contacts">Contact</Link></li>
                         {isAuth ? (
-                                        <li className="nav-item">
-                                            <Link to="/profile" className="nav-link text-white">
-                                            <i className="bi bi-person"></i> Profile
-                                            </Link>
-                                        </li>
-                                        ) : (
-                                        <li className="nav-item">
-                                            <Link to="/login-form" className="nav-link text-white">
-                                            <i className="bi bi-person"></i> Sign in
-                                            </Link>
-                                        </li>
-                                    )}
+                            <li className="nav-item">
+                                <Link to="/profile" className="nav-link text-white">
+                                    <i className="bi bi-person"></i> Profile
+                                </Link>
+                            </li>
+                        ) : (
+                            <li className="nav-item">
+                                <Link to="/login-form" className="nav-link text-white">
+                                    <i className="bi bi-person"></i> Sign in
+                                </Link>
+                            </li>
+                        )}
                         <li><Link to="/" className="btn btn-lg btn-outline-primary">Submit Listing</Link></li>
                     </ul>
                 </Modal.Body>

@@ -75,6 +75,7 @@ export function Login() {
             setIsAuth(true);
             localStorage.setItem("token", data.token);
             localStorage.setItem("name", data.name);
+            localStorage.removeItem('favorites');
 
             setRegSuccess(`Welcome, ${data.name}!`);
             setRegFullName(""); setRegPhone(""); setRegEmail(""); setRegPassword(""); setRegConfirm("");

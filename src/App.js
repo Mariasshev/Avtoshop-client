@@ -29,6 +29,7 @@ import { LoginForm } from "./Pages/LoginForm";
 import { Profile } from './Pages/Profile';
 import { AddCarPage } from './Pages/AddCarPage';
 import { EditCarPage } from './Pages/EditCarPage';
+import { FavoritesPage } from './Pages/FavoritesPage';
 
 
 function App() {
@@ -40,67 +41,70 @@ function App() {
     }, []);
 
 
-  return (
-    
+    return (
+
         <BrowserRouter>
-                <Routes>
-                    {/* Redirect from root path to index */}
-                    <Route path="/" element={<Navigate to="index" />} />
+            <Routes>
+                {/* Redirect from root path to index */}
+                <Route path="/" element={<Navigate to="index" />} />
 
-                    {/* Главная страница - index */}
-                    <Route path="index" element={<MainPage />} />
+                {/* Главная страница - index */}
+                <Route path="index" element={<MainPage />} />
 
-                    {/* Cars-list */}
-                    <Route path="cars-list" element={<CarsList />} />
+                {/* Cars-list */}
+                <Route path="cars-list" element={<CarsList />} />
 
-                    {/* Car-card */}
-                    <Route path="/cars/:id" element={<CarCard />} />
+                {/* Car-card */}
+                <Route path="/cars/:id" element={<CarCard />} />
 
-                    {/* Blog */}
-                    <Route path="blog" element={<Blog />} />
+                {/* Blog */}
+                <Route path="blog" element={<Blog />} />
 
-                    {/* Blog-page */}
-                    <Route path="blog-page" element={<BlogPage />} />
+                {/* Blog-page */}
+                <Route path="blog-page" element={<BlogPage />} />
 
-                    {/* Shop */}
-                    <Route path="shop" element={<Shop />} />
+                {/* Shop */}
+                <Route path="shop" element={<Shop />} />
 
-                    {/* Questions */}
-                    <Route path="questions" element={<Questions />} />
+                {/* Questions */}
+                <Route path="questions" element={<Questions />} />
 
-                    {/* Loan Calculator */}
-                    <Route path="loan-calc" element={<LoanCalc />} />
+                {/* Loan Calculator */}
+                <Route path="loan-calc" element={<LoanCalc />} />
 
-                    {/* Price Cards */}
-                    <Route path="price-cards" element={<PriceCards />} />
+                {/* Price Cards */}
+                <Route path="price-cards" element={<PriceCards />} />
 
-                    {/* Service */}
-                    <Route path="service" element={<Service />} />
+                {/* Service */}
+                <Route path="service" element={<Service />} />
 
-                    {/* About Us */}
-                    <Route path="about-us" element={<AboutUs />} />
+                {/* About Us */}
+                <Route path="about-us" element={<AboutUs />} />
 
-                    {/* Contacts */}
-                    <Route path="contacts" element={<Contacts />} />
+                {/* Contacts */}
+                <Route path="contacts" element={<Contacts />} />
 
-                    {/* Profile */}
-                    <Route path="profile" element={<Profile />} />
+                {/* Profile */}
+                <Route path="profile" element={<Profile />} />
 
-                    {/* Login Form */}
-                    <Route path="login-form" element={<LoginForm />} />
+                {/* Login Form */}
+                <Route path="login-form" element={<LoginForm />} />
 
-                    {/* Car Form */}
-                    <Route path="/add-listing" element={<AddCarPage />} />
+                {/* Car Form */}
+                <Route path="/add-listing" element={<AddCarPage />} />
 
-                    {/* Edit user car */}
-                    <Route path="/cars/edit/:id" element={<EditCarPage />} />
+                {/* Edit user car */}
+                <Route path="/cars/edit/:id" element={<EditCarPage />} />
+
+                {/* Favourites */}
+                <Route path="/favorites" element={<FavoritesPage />} />
 
 
-                </Routes>
+            </Routes>
         </BrowserRouter>
-        
-   
-  );
+
+
+    );
 }
 
 export default App;

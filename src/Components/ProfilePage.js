@@ -1,10 +1,13 @@
-import { useState, useEffect, useContext,useRef } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Components/AuthContext';
 import { LoadingOverlay } from "../Components/LoadingOverlay";
 import profileImg from '../assets/image/user/user-profile-img.png';
 import { MyListingItem } from '../Components/MyListingItem.js';
+import { FavoritesContext } from '../context/FavoritesContext';
+import { CarCardPattern } from '../Components/CarCardPattern';
+import { useSearchParams } from 'react-router-dom';
 
 export function ProfilePage() {
   const [key, setKey] = useState('profile');
@@ -13,6 +16,45 @@ export function ProfilePage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [allCars, setAllCars] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    // получаем список избранных из localStorage, если есть
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars`);
+        if (!response.ok) throw new Error('Ошибка загрузки машин');
+        const data = await response.json();
+        setAllCars(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchCars();
+  }, []);
+
+  // фильтрация избранных машин из всех
+  const favoriteCars = allCars.filter(car => favorites.includes(car.id));
+
+
+  //favourites
+  //const [key, setKey] = useState('profile');
+
+  // Читаем query параметры из URL
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const tabFromQuery = searchParams.get('tab');
+    if (tabFromQuery) {
+      setKey(tabFromQuery);
+    }
+  }, [searchParams]);
+
+
 
   const [brands, setBrands] = useState([]);
 
@@ -80,13 +122,13 @@ export function ProfilePage() {
         });
         setErrorMessage(''); // очищаем ошибку, если всё ок
         if (data.photoUrl) {
-  const fullUrl = data.photoUrl.startsWith('http')
-    ? data.photoUrl
-    : `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}${data.photoUrl.startsWith('/') ? '' : '/'}${data.photoUrl}`;
-  setProfileImgSrc(fullUrl);
-} else {
-  setProfileImgSrc(profileImg); // дефолтное
-}
+          const fullUrl = data.photoUrl.startsWith('http')
+            ? data.photoUrl
+            : `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}${data.photoUrl.startsWith('/') ? '' : '/'}${data.photoUrl}`;
+          setProfileImgSrc(fullUrl);
+        } else {
+          setProfileImgSrc(profileImg); // дефолтное
+        }
 
       } catch (error) {
         console.error('Ошибка загрузки профиля:', error);
@@ -164,108 +206,108 @@ export function ProfilePage() {
   const fileInputRef = useRef();
 
   const handleFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error('Token missing');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/profile/photo`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      console.error('Ошибка загрузки фото:', response.statusText);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token missing');
       return;
     }
 
-    const data = await response.json();
-    console.log('Ответ сервера по фото:', data);
+    const formData = new FormData();
+    formData.append('file', file);
 
-  } catch (error) {
-    console.error('Ошибка при загрузке фото', error);
-  }
-};
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/profile/photo`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
 
-//change password
-const [passwordError, setPasswordError] = useState('');       // для current password
-const [newPasswordError, setNewPasswordError] = useState(''); // для new passwords mismatch
-
-const [passwordData, setPasswordData] = useState({
-  currentPassword: '',
-  newPassword: '',
-  confirmNewPassword: ''
-});
-
-const handleChangePassword = async () => {
-  // очищаем предыдущие ошибки
-  setPasswordError('');
-  setNewPasswordError('');
-
-  if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-    setNewPasswordError('New passwords do not match');
-    return;
-  }
-
-  const token = localStorage.getItem('token');
-  if (!token) {
-    setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/change-password`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Ошибка при смене пароля:', errorText);
-      if (errorText.includes('Текущий пароль неверный')) {
-        setPasswordError('Current password is incorrect');
-      } else {
-        setErrorMessage(`Ошибка при смене пароля: ${errorText}`);
+      if (!response.ok) {
+        console.error('Ошибка загрузки фото:', response.statusText);
+        return;
       }
-      return;
-    }
 
-    alert('Password changed successfully!');
-    setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+      const data = await response.json();
+      console.log('Ответ сервера по фото:', data);
+
+    } catch (error) {
+      console.error('Ошибка при загрузке фото', error);
+    }
+  };
+
+  //change password
+  const [passwordError, setPasswordError] = useState('');       // для current password
+  const [newPasswordError, setNewPasswordError] = useState(''); // для new passwords mismatch
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+
+  const handleChangePassword = async () => {
+    // очищаем предыдущие ошибки
     setPasswordError('');
     setNewPasswordError('');
-    setErrorMessage('');
-  } catch (error) {
-    console.error('Ошибка сети при смене пароля:', error);
-    setErrorMessage('Ошибка сети при смене пароля.');
-  }
-};
+
+    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+      setNewPasswordError('New passwords do not match');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Ошибка при смене пароля:', errorText);
+        if (errorText.includes('Текущий пароль неверный')) {
+          setPasswordError('Current password is incorrect');
+        } else {
+          setErrorMessage(`Ошибка при смене пароля: ${errorText}`);
+        }
+        return;
+      }
+
+      alert('Password changed successfully!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+      setPasswordError('');
+      setNewPasswordError('');
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Ошибка сети при смене пароля:', error);
+      setErrorMessage('Ошибка сети при смене пароля.');
+    }
+  };
 
 
-//add car list
-const [listings, setListings] = useState([]);
+  //add car list
+  const [listings, setListings] = useState([]);
   const [loadingListings, setLoadingListings] = useState(false);
   const [listingsError, setListingsError] = useState('');
 
-useEffect(() => {
+  useEffect(() => {
     const fetchListings = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -342,6 +384,8 @@ useEffect(() => {
           </div>
 
           <Tabs id="profileTabs" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
+
+            {/* </Tabs><Tabs id="profileTabs" activeKey={key} onSelect={setKey} className="mb-3"> */}
             <Tab eventKey="profile" title="Profile">
               <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
                 <div className="row g-4">
@@ -349,8 +393,8 @@ useEffect(() => {
                     <div className='profile-img'>
                       <img src={profileImgSrc} className="rounded-circle mb-3" alt="Profile" />
                       <div>
-                        <button 
-                          className="btn btn-outline-primary btn-sm" 
+                        <button
+                          className="btn btn-outline-primary btn-sm"
                           onClick={() => fileInputRef.current.click()}
                         >
                           Change photo
@@ -363,13 +407,13 @@ useEffect(() => {
                         />
                       </div>
                     </div>
-                    
+
                   </div>
-                
+
                   <div className="col-md-8">
 
-                  <p className="fw-semibold">Your profile</p>
-                  <hr className="mb-4" />
+                    <p className="fw-semibold">Your profile</p>
+                    <hr className="mb-4" />
                     <form>
                       <div className="row g-3">
                         <div className="col-md-6">
@@ -429,7 +473,7 @@ useEffect(() => {
                         </div>
                       </div>
 
-<div className="mt-4 text-center text-md-end">
+                      <div className="mt-4 text-center text-md-end">
                         <button
                           type="button"
                           className="btn btn-danger px-3 py-2 fw-regular me-1"
@@ -448,66 +492,66 @@ useEffect(() => {
                       </div>
 
 
-<p className="fw-semibold mt-5">Change Password</p>
-<hr className="mb-4" />
+                      <p className="fw-semibold mt-5">Change Password</p>
+                      <hr className="mb-4" />
 
-<div className="row g-3">
-  <div className="col-md-12">
-  <label className="form-label">Current Password</label>
-  <input
-    type="password"
-    className="form-control"
-    value={passwordData.currentPassword}
-    onChange={(e) => {
-      setPasswordData({ ...passwordData, currentPassword: e.target.value });
-      setPasswordError('');
-    }}
-  />
-  {passwordError && (
-    <div className="text-danger small mt-1">{passwordError}</div>
-  )}
-</div>
+                      <div className="row g-3">
+                        <div className="col-md-12">
+                          <label className="form-label">Current Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            value={passwordData.currentPassword}
+                            onChange={(e) => {
+                              setPasswordData({ ...passwordData, currentPassword: e.target.value });
+                              setPasswordError('');
+                            }}
+                          />
+                          {passwordError && (
+                            <div className="text-danger small mt-1">{passwordError}</div>
+                          )}
+                        </div>
 
 
-  <div className="col-md-6">
-  <label className="form-label">New Password</label>
-  <input
-    type="password"
-    className="form-control"
-    value={passwordData.newPassword}
-    onChange={(e) => {
-      setPasswordData({ ...passwordData, newPassword: e.target.value });
-      setNewPasswordError('');
-    }}
-  />
-</div>
-<div className="col-md-6">
-  <label className="form-label">Confirm New Password</label>
-  <input
-    type="password"
-    className="form-control"
-    value={passwordData.confirmNewPassword}
-    onChange={(e) => {
-      setPasswordData({ ...passwordData, confirmNewPassword: e.target.value });
-      setNewPasswordError('');
-    }}
-  />
-</div>
-{newPasswordError && (
-  <div className="text-danger small mt-1">{newPasswordError}</div>
-)}
+                        <div className="col-md-6">
+                          <label className="form-label">New Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            value={passwordData.newPassword}
+                            onChange={(e) => {
+                              setPasswordData({ ...passwordData, newPassword: e.target.value });
+                              setNewPasswordError('');
+                            }}
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label">Confirm New Password</label>
+                          <input
+                            type="password"
+                            className="form-control"
+                            value={passwordData.confirmNewPassword}
+                            onChange={(e) => {
+                              setPasswordData({ ...passwordData, confirmNewPassword: e.target.value });
+                              setNewPasswordError('');
+                            }}
+                          />
+                        </div>
+                        {newPasswordError && (
+                          <div className="text-danger small mt-1">{newPasswordError}</div>
+                        )}
 
-</div>
+                      </div>
 
-<div className="mt-3 text-end">
-  <button
-    type="button"
-    className="btn btn-warning px-3 py-2 fw-semibold"
-    onClick={handleChangePassword}
-  >
-    Change Password
-  </button>
-</div>
+                      <div className="mt-3 text-end">
+                        <button
+                          type="button"
+                          className="btn btn-warning px-3 py-2 fw-semibold"
+                          onClick={handleChangePassword}
+                        >
+                          Change Password
+                        </button>
+                      </div>
 
                     </form>
                   </div>
@@ -518,13 +562,24 @@ useEffect(() => {
             <Tab eventKey="favorites" title="Favourites">
               <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
                 <p className="mb-3 h5 text-start">Favourites</p>
+
+                {favoriteCars.length === 0 && <p>You have no favorites yet.</p>}
+
+                <div className="row">
+                  {favoriteCars.map(car => (
+                    <div key={car.id} className="col-md-4 mb-3">
+                      <CarCardPattern car={car} />
+                    </div>
+                  ))}
+                </div>
               </div>
             </Tab>
+
             <Tab eventKey="listings" title="My Listings">
               <div className="card shadow-sm rounded-4 p-3 p-md-4 border-0">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h5 className="mb-0">My Listings</h5>
-                  <button 
+                  <button
                     className="btn btn-primary"
                     onClick={() => navigate('/add-listing')}
                   >
@@ -552,12 +607,12 @@ useEffect(() => {
                           </thead>
                           <tbody>
                             {listings.map(listing => (
-                              <MyListingItem 
-                                key={listing.id} 
-                                listing={listing} 
+                              <MyListingItem
+                                key={listing.id}
+                                listing={listing}
                                 brands={brands}
-                                onEdit={handleEdit} 
-                                onDelete={handleDelete} 
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
                               />
                             ))}
                           </tbody>
@@ -568,12 +623,12 @@ useEffect(() => {
                     {/* Mobile view */}
                     <div className="d-md-none">
                       {listings.map(listing => (
-                        <MyListingItem 
-                          key={listing.id} 
-                          listing={listing} 
+                        <MyListingItem
+                          key={listing.id}
+                          listing={listing}
                           brands={brands}
-                          onEdit={handleEdit} 
-                          onDelete={handleDelete} 
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
                         />
                       ))}
                     </div>
@@ -583,28 +638,28 @@ useEffect(() => {
             </Tab>
 
           </Tabs>
-          
+
 
           {isLoggingOut && <LoadingOverlay text="Logging out..." />}
-      {showModal && (
-        <div className="modal fade show d-block" tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Подтвердите изменения</h5>
-                <button className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <p>Вы уверены, что хотите сохранить изменения?</p>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Отмена</button>
-                <button className="btn btn-primary" onClick={confirmSave}>Да, сохранить</button>
+          {showModal && (
+            <div className="modal fade show d-block" tabIndex="-1">
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Подтвердите изменения</h5>
+                    <button className="btn-close" onClick={() => setShowModal(false)}></button>
+                  </div>
+                  <div className="modal-body">
+                    <p>Вы уверены, что хотите сохранить изменения?</p>
+                  </div>
+                  <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Отмена</button>
+                    <button className="btn btn-primary" onClick={confirmSave}>Да, сохранить</button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
         </div>
       </main>
     </div>

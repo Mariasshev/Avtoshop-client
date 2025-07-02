@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import carsData from '../data/carsData.json';
 import { CarCardPattern } from './CarCardPattern';
 import { Link } from 'react-router-dom';
 import AOS from 'aos';
@@ -9,24 +8,24 @@ export function CarsList({ limit }) {
     const [cars, setCars] = useState([]);
 
     useEffect(() => {
-    const fetchCars = async () => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars`);
-            const data = await response.json();
-            setCars(limit ? data.slice(0, limit) : data);
-        } catch (err) {
-            console.error("Failed to fetch cars:", err);
-        }
-    };
+        const fetchCars = async () => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars`);
+                const data = await response.json();
+                setCars(limit ? data.slice(0, limit) : data);
+            } catch (err) {
+                console.error("Failed to fetch cars:", err);
+            }
+        };
 
-    fetchCars();
+        fetchCars();
 
-    AOS.init({
-        duration: 1000,
-        once: false,
-        offset: 200,
-    });
-}, [limit]);
+        AOS.init({
+            duration: 1000,
+            once: false,
+            offset: 200,
+        });
+    }, [limit]);
 
 
     return (
@@ -65,7 +64,7 @@ export function CarsList({ limit }) {
                                     data-aos="fade-up"
                                     data-aos-delay={`${400 + car.Id * 100}`}
                                 />
-                                ))}
+                            ))}
 
                         </div>
                     </div>
