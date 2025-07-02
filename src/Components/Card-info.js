@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import calendarIcon from '../assets/image/car-info/calendar-icon.svg';
 import mileageIcon from '../assets/image/car-info/mileage-icon.svg';
 import petrolIcon from '../assets/image/car-info/petrol-icon.svg';
@@ -18,13 +19,68 @@ import vinIcon from '../assets/image/car-info/vin-icon.svg';
 import phoneIcon from '../assets/image/car-info/phone-icon.svg';
 import offerIcon from '../assets/image/car-info/offer-icon.svg';
 import getDirectionIcon from '../assets/image/car-info/get-direction-icon.svg';
+
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import Swal from 'sweetalert2';
 
 import { CarCardPattern } from './CarCardPattern';
 
 export function CarInfo({ car, cars }) {
+
+  const [showAddCarForm, setShowAddCarForm] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAddCarClick = () => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Date.now() / 1000;
+
+        if (payload.exp && payload.exp > currentTime) {
+          navigate("/add-listing");
+        } else {
+          showLoginModal();
+        }
+      } catch (error) {
+        console.error("Invalid token format:", error);
+        localStorage.removeItem("token");
+        showLoginModal();
+      }
+    } else {
+      showLoginModal();
+    }
+  };
+
+  const showLoginModal = () => {
+    Swal.fire({
+      title: 'Authorization required',
+      text: 'Please log in or register to add a new car listing.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Login',
+      cancelButtonText: 'Register',
+      reverseButtons: true,
+      customClass: {
+        popup: 'rounded-4',
+        title: 'fw-bold',
+        confirmButton: 'btn btn-dark px-3 ms-1',
+        cancelButton: 'btn btn-outline-dark px-3'
+      },
+      buttonsStyling: false,
+      background: '#fff',
+      color: '#050B20',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/login-form");
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        navigate("/login-form");
+      }
+    });
+  };
 
   const [slidesToShowNew, setSlidesToShowNew] = useState(4);
   const [slidesToShowFavorable, setSlidesToShowFavorable] = useState(4);
@@ -279,7 +335,8 @@ export function CarInfo({ car, cars }) {
 
               <div>
                 <button
-                  className={`btn btn-md px-3 btn-success rounded-2 ms-1`}
+                  className="btn btn-md px-3 btn-success rounded-2 ms-1"
+                  onClick={handleAddCarClick}
                 >
                   Add new car
                 </button>
