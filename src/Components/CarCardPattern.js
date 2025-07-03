@@ -54,8 +54,11 @@ export function CarCardPattern({ car }) {
 
                     <div className="row pt-2">
                         <div className="col-6">
-                            <h4 className="dm-sans-bold mb-1">${car.price}</h4>
+                            <h4 className="dm-sans-bold mb-1">
+                                ${car.price >= 1000 ? car.price.toLocaleString('de-DE') : car.price}
+                            </h4>
                         </div>
+
                         <div className="col-12 col-md-6 text-start text-md-end">
                             <p className="ft-15 blue-color dm-sans-medium mb-0 view-det">View Details <i className="bi bi-arrow-up-right"></i></p>
                         </div>

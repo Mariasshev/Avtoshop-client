@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useBrandsAndModels } from '../hooks/useBrandsAndModels';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 export function AddCarForm() {
   const [formData, setFormData] = useState({
@@ -23,15 +24,14 @@ export function AddCarForm() {
   const [photos, setPhotos] = useState([]);
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
-
-  //const { brands, models } = useBrandsAndModels(formData.brand);
+  const navigate = useNavigate();
 
   // Загрузка брендов при монтировании
   useEffect(() => {
     fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands`)
       .then(res => res.json())
       .then(data => {
-        console.log('Fetched brands:', data); // 🐞 Лог для проверки брендов
+        console.log('Fetched brands:', data);
         setBrands(data);
       })
       .catch(err => console.error('Failed to fetch brands:', err));
@@ -43,7 +43,7 @@ export function AddCarForm() {
       fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands/${formData.brand}/models`)
         .then(res => res.json())
         .then(data => {
-          console.log('Fetched models:', data); // 🐞 Лог для проверки моделей
+          console.log('Fetched models:', data);
           setModels(data);
         })
         .catch(err => console.error('Failed to fetch models:', err));
@@ -54,14 +54,13 @@ export function AddCarForm() {
 
   const handleBrandChange = (e) => {
     const selectedBrandId = e.target.value;
-    console.log('Selected brandId:', selectedBrandId); // добавь лог
+    console.log('Selected brandId:', selectedBrandId);
     setFormData(prev => ({
       ...prev,
       brand: selectedBrandId,
       model: '' // сбрасываем модель при смене бренда
     }));
   };
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -75,77 +74,99 @@ export function AddCarForm() {
     setPhotos(Array.from(e.target.files));
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('Submitting formData:', formData); // 🐞 Проверяем данные перед отправкой
-
-    // Проверка обязательных полей
+    // Валидация с красивыми swal-уведомлениями
     if (!formData.brand || formData.brand === "0") {
-      alert('Please select a brand');
-      console.error('Brand is missing or invalid:', formData.brand); // 
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Please select a brand'
+      });
+      console.error('Brand is missing or invalid:', formData.brand);
       return;
     }
 
     if (!formData.model || formData.model === "0") {
-      alert('Please select a model');
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Please select a model'
+      });
       console.error('Model is missing or invalid:', formData.model);
       return;
     }
 
     if (!formData.year) {
-      alert('Please enter the year');
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Please enter the year'
+      });
       console.error('Year is missing');
       return;
     }
 
     if (!formData.price) {
-      alert('Please enter the price');
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Please enter the price'
+      });
       console.error('Price is missing');
       return;
     }
 
     const data = new FormData();
 
-    // Берем выбранные бренд и модель по id
+    // Найдем выбранные бренд и модель по id
     const selectedBrand = brands.find(b => b.id.toString() === formData.brand);
     const selectedModel = models.find(m => m.id.toString() === formData.model);
 
-
     if (!selectedBrand) {
-      alert('Selected brand not found in brand list');
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Selected brand not found in brand list'
+      });
       console.error('Brand not found in list:', formData.brand);
       return;
     }
 
     if (!selectedModel) {
-      alert('Selected model not found in model list');
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Selected model not found in model list'
+      });
       console.error('Model not found in list:', formData.model);
       return;
     }
 
-    // Добавляем все остальные поля, кроме brand и model
+    // Добавляем все поля, кроме brand и model (они отдельно)
     Object.entries(formData).forEach(([key, value]) => {
       if (key !== 'brand' && key !== 'model') {
         data.append(key, value);
       }
     });
 
-    // Добавляем BrandId как число
     data.append('BrandId', parseInt(formData.brand, 10));
-    // Добавляем название модели
     data.append('Model', selectedModel.name);
 
-    // Проверка и добавление фото
     if (photos.length === 0) {
-      alert('Please upload at least one photo');
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Please upload at least one photo'
+      });
       console.error('No photos selected');
       return;
     }
+
     photos.forEach(photo => data.append('Photos', photo));
 
-    // Логируем, что реально уйдёт на сервер
+    // Логируем отправляемые данные (файлы отображаются по имени)
     for (let pair of data.entries()) {
       console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
     }
@@ -153,7 +174,11 @@ export function AddCarForm() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('You are not authorized. Please log in.');
+        await Swal.fire({
+          icon: 'error',
+          title: 'Unauthorized',
+          text: 'You are not authorized. Please log in.'
+        });
         console.error('No auth token found');
         return;
       }
@@ -165,8 +190,13 @@ export function AddCarForm() {
       });
 
       if (response.ok) {
-        console.log("Brand " + formData.brand);
-        alert('Car successfully added!');
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Car successfully added!'
+        });
+        navigate('/profile');
+
         // Сброс формы
         setFormData({
           mileage: '', year: '', transmission: '', fuelType: '',
@@ -178,15 +208,22 @@ export function AddCarForm() {
         setModels([]);
       } else {
         const errorText = await response.text();
+        await Swal.fire({
+          icon: 'error',
+          title: 'Server error',
+          text: errorText
+        });
         console.error('Server error:', errorText);
-        alert('Failed to add car: ' + errorText);
       }
     } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Network error',
+        text: 'Please check your connection and try again.'
+      });
       console.error('Network error:', error);
-      alert('Network error');
     }
   };
-
 
   return (
     <div className="container-lg my-5">

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 export function EditCar() {
   const { id } = useParams();
@@ -33,7 +35,6 @@ export function EditCar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Загрузить бренды при монтировании
   useEffect(() => {
     fetch(`${process.env.REACT_APP_API_URL}/api/CarBrands`)
       .then(res => res.json())
@@ -41,7 +42,6 @@ export function EditCar() {
       .catch(err => console.error('Failed to load brands', err));
   }, []);
 
-  // Загрузить данные машины
   useEffect(() => {
     const fetchCar = async () => {
       try {
@@ -49,13 +49,10 @@ export function EditCar() {
         const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}/details`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
+        if (!res.ok) throw new Error(`Load error: ${res.status}`);
 
         const data = await res.json();
 
-        console.log('brand from API:', data.brand);
-
-        // Проверяем, если brand — объект, достаём id, если строка/число — приводим к строке
         let brandId = '';
         if (data.brand) {
           if (typeof data.brand === 'object' && data.brand.id) {
@@ -149,6 +146,40 @@ export function EditCar() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.brand) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: 'Please select a brand.'
+      });
+      return;
+    }
+    if (!formData.model) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: 'Please select a model.'
+      });
+      return;
+    }
+    if (!formData.year) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: 'Please enter the year.'
+      });
+      return;
+    }
+    if (!formData.price) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: 'Please enter the price.'
+      });
+      return;
+    }
+
     try {
       const data = new FormData();
       data.append('Id', formData.id);
@@ -161,6 +192,15 @@ export function EditCar() {
       data.append('PhotosToDelete', JSON.stringify(photosToDelete));
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'You are not authorized. Please log in.'
+        });
+        return;
+      }
+
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
@@ -168,19 +208,31 @@ export function EditCar() {
       });
 
       if (res.ok) {
-        alert('Car updated!');
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Car updated successfully!'
+        });
         navigate('/profile');
       } else {
         const errText = await res.text();
-        alert('Failed to update car: ' + errText);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `Failed to update car: ${errText}`
+        });
       }
     } catch (err) {
-      alert('Network error: ' + err.message);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Network Error',
+        text: err.message
+      });
     }
   };
 
-  if (loading) return <div>Loading car data...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="container my-5">

@@ -1,6 +1,9 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
+
 import { AuthContext } from '../Components/AuthContext';
 import { LoadingOverlay } from "../Components/LoadingOverlay";
 import profileImg from '../assets/image/user/user-profile-img.png';
@@ -18,7 +21,6 @@ export function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [allCars, setAllCars] = useState([]);
   const [favorites, setFavorites] = useState(() => {
-    // получаем список избранных из localStorage, если есть
     const saved = localStorage.getItem('favorites');
     return saved ? JSON.parse(saved) : [];
   });
@@ -27,7 +29,7 @@ export function ProfilePage() {
     const fetchCars = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars`);
-        if (!response.ok) throw new Error('Ошибка загрузки машин');
+        if (!response.ok) throw new Error('Failed to load cars');
         const data = await response.json();
         setAllCars(data);
       } catch (error) {
@@ -37,14 +39,8 @@ export function ProfilePage() {
     fetchCars();
   }, []);
 
-  // фильтрация избранных машин из всех
   const favoriteCars = allCars.filter(car => favorites.includes(car.id));
 
-
-  //favourites
-  //const [key, setKey] = useState('profile');
-
-  // Читаем query параметры из URL
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -53,8 +49,6 @@ export function ProfilePage() {
       setKey(tabFromQuery);
     }
   }, [searchParams]);
-
-
 
   const [brands, setBrands] = useState([]);
 
@@ -76,15 +70,12 @@ export function ProfilePage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      console.log('Начинаем fetchProfile');
       const token = localStorage.getItem("token");
 
       if (!token) {
-        console.error('Токен не найден в localStorage');
-        setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+        setErrorMessage('Token not found. Please login again.');
         return;
       }
-      console.log('Токен найден:', token);
 
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/profile`, {
@@ -93,24 +84,19 @@ export function ProfilePage() {
           }
         });
 
-        console.log('Ответ от сервера получен, статус:', response.status);
-
         if (!response.ok) {
           if (response.status === 401) {
-            console.warn('401 Unauthorized - переходим на страницу входа');
-            setErrorMessage('Неавторизованный доступ. Войдите снова.');
+            setErrorMessage('Unauthorized access. Please login again.');
             setIsAuth(false);
             navigate("/login-form");
           } else {
             const errorText = await response.text();
-            console.error('Ошибка от сервера:', errorText);
-            setErrorMessage(`Ошибка при получении профиля: ${errorText}`);
+            setErrorMessage(`Error fetching profile: ${errorText}`);
           }
           return;
         }
 
         const data = await response.json();
-        console.log('Данные профиля:', data);
 
         setFormData({
           firstName: data.name || '',
@@ -120,19 +106,18 @@ export function ProfilePage() {
           city: data.city || '',
           country: data.country || ''
         });
-        setErrorMessage(''); // очищаем ошибку, если всё ок
+        setErrorMessage('');
         if (data.photoUrl) {
           const fullUrl = data.photoUrl.startsWith('http')
             ? data.photoUrl
             : `${process.env.REACT_APP_API_URL.replace(/\/$/, '')}${data.photoUrl.startsWith('/') ? '' : '/'}${data.photoUrl}`;
           setProfileImgSrc(fullUrl);
         } else {
-          setProfileImgSrc(profileImg); // дефолтное
+          setProfileImgSrc(profileImg);
         }
 
       } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
-        setErrorMessage('Ошибка загрузки профиля. Проверьте соединение.');
+        setErrorMessage('Failed to load profile. Check your connection.');
       }
     };
 
@@ -140,7 +125,6 @@ export function ProfilePage() {
   }, [navigate, setIsAuth]);
 
   const handleLogout = () => {
-    console.log('Вызван handleLogout');
     setIsLoggingOut(true);
     localStorage.removeItem("token");
     localStorage.removeItem("name");
@@ -160,8 +144,7 @@ export function ProfilePage() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error('Токен не найден при сохранении');
-      setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+      setErrorMessage('Token not found. Please login again.');
       return;
     }
 
@@ -186,23 +169,23 @@ export function ProfilePage() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Ошибка при сохранении:', errorText);
-        setErrorMessage(`Ошибка при сохранении: ${errorText}`);
+        setErrorMessage(`Save error: ${errorText}`);
         return;
       }
 
-      alert('Данные обновлены!');
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Profile data updated!'
+      });
       setErrorMessage('');
 
     } catch (error) {
-      console.error('Ошибка сети при обновлении профиля:', error);
-      setErrorMessage('Ошибка сети при сохранении профиля.');
+      setErrorMessage('Network error while saving profile.');
     }
   };
 
-
-  //change photo
-  const [profileImgSrc, setProfileImgSrc] = useState(profileImg); // дефолт
+  const [profileImgSrc, setProfileImgSrc] = useState(profileImg);
   const fileInputRef = useRef();
 
   const handleFileChange = async (e) => {
@@ -228,21 +211,20 @@ export function ProfilePage() {
       });
 
       if (!response.ok) {
-        console.error('Ошибка загрузки фото:', response.statusText);
+        console.error('Photo upload error:', response.statusText);
         return;
       }
 
       const data = await response.json();
-      console.log('Ответ сервера по фото:', data);
+      console.log('Photo upload response:', data);
 
     } catch (error) {
-      console.error('Ошибка при загрузке фото', error);
+      console.error('Photo upload error', error);
     }
   };
 
-  //change password
-  const [passwordError, setPasswordError] = useState('');       // для current password
-  const [newPasswordError, setNewPasswordError] = useState(''); // для new passwords mismatch
+  const [passwordError, setPasswordError] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -251,7 +233,6 @@ export function ProfilePage() {
   });
 
   const handleChangePassword = async () => {
-    // очищаем предыдущие ошибки
     setPasswordError('');
     setNewPasswordError('');
 
@@ -262,7 +243,7 @@ export function ProfilePage() {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setErrorMessage('Токен не найден. Пожалуйста, войдите заново.');
+      setErrorMessage('Token not found. Please login again.');
       return;
     }
 
@@ -281,28 +262,28 @@ export function ProfilePage() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Ошибка при смене пароля:', errorText);
-        if (errorText.includes('Текущий пароль неверный')) {
+        if (errorText.includes('Current password incorrect')) {
           setPasswordError('Current password is incorrect');
         } else {
-          setErrorMessage(`Ошибка при смене пароля: ${errorText}`);
+          setErrorMessage(`Password change error: ${errorText}`);
         }
         return;
       }
 
-      alert('Password changed successfully!');
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Password changed successfully!'
+      });
       setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
       setPasswordError('');
       setNewPasswordError('');
       setErrorMessage('');
     } catch (error) {
-      console.error('Ошибка сети при смене пароля:', error);
-      setErrorMessage('Ошибка сети при смене пароля.');
+      setErrorMessage('Network error during password change.');
     }
   };
 
-
-  //add car list
   const [listings, setListings] = useState([]);
   const [loadingListings, setLoadingListings] = useState(false);
   const [listingsError, setListingsError] = useState('');
@@ -311,7 +292,7 @@ export function ProfilePage() {
     const fetchListings = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        setListingsError('Токен не найден. Пожалуйста, войдите заново.');
+        setListingsError('Token not found. Please login again.');
         return;
       }
 
@@ -327,17 +308,15 @@ export function ProfilePage() {
 
         if (!response.ok) {
           const errorText = await response.text();
-          setListingsError(`Ошибка загрузки объявлений: ${errorText}`);
+          setListingsError(`Error loading listings: ${errorText}`);
           setListings([]);
           return;
         }
 
         const data = await response.json();
-
-        // Предполагается, что data - массив машин пользователя
         setListings(data);
       } catch (error) {
-        setListingsError('Ошибка сети при загрузке объявлений');
+        setListingsError('Network error loading listings');
         setListings([]);
       } finally {
         setLoadingListings(false);
@@ -352,24 +331,44 @@ export function ProfilePage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Вы уверены, что хотите удалить объявление?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you really want to delete this listing?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
 
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    if (result.isConfirmed) {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      if (res.ok) {
-        // Удалить из состояния список
-        setListings(prev => prev.filter(item => item.id !== id));
-        alert('Объявление успешно удалено');
-      } else {
-        alert('Ошибка при удалении объявления');
+        if (res.ok) {
+          setListings(prev => prev.filter(item => item.id !== id));
+          await Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'The listing has been deleted.'
+          });
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete the listing.'
+          });
+        }
+      } catch (err) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Network Error',
+          text: err.message
+        });
       }
-    } catch (err) {
-      alert('Ошибка сети: ' + err.message);
     }
   };
   // логика удаления

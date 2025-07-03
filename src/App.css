@@ -95,6 +95,58 @@
 }
 
 
+.modern-pagination .page-item {
+    margin: 0 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.modern-pagination .page-link {
+    border: none;
+    color: #555;
+    background: #f9f9f9;
+    padding: 8px 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.modern-pagination .page-link:hover:not(:disabled) {
+    background-color: #4f46e5;
+    /* Indigo 600 */
+    color: white;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    transform: translateY(-2px);
+}
+
+.modern-pagination .page-item.active .page-link {
+    background-color: #4338ca;
+    /* Indigo 700 */
+    color: white;
+    box-shadow: 0 4px 12px rgba(67, 56, 202, 0.6);
+    cursor: default;
+}
+
+.modern-pagination .page-item.disabled .page-link {
+    color: #aaa;
+    pointer-events: none;
+    background: #eaeaea;
+    box-shadow: none;
+    cursor: default;
+}
+
+.modern-pagination .page-item:first-child .page-link,
+.modern-pagination .page-item:last-child .page-link {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+
+
 /* классы для цветов текста */
 .primary-color {
     color: var(--primary-color)

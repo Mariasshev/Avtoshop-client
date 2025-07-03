@@ -4,6 +4,7 @@ import { CarCardPattern } from '../Components/CarCardPattern';
 import { HeaderDark } from "../Components/Header-dark-1";
 import { Footer } from "../Components/Footer";
 import { useBrandsAndModels } from '../hooks/useBrandsAndModels';
+import { Pagination } from '../Components/Pagination';
 import * as bootstrap from 'bootstrap';
 
 import AOS from 'aos';
@@ -24,6 +25,9 @@ export const CarsListCatalog = ({ limit }) => {
     const { brands, models } = useBrandsAndModels(filters.brand);
     const [sortOrder, setSortOrder] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
+
     const handleSortChange = (e) => {
         setSortOrder(e.target.value);
     };
@@ -36,6 +40,21 @@ export const CarsListCatalog = ({ limit }) => {
         }));
     };
 
+    useEffect(() => {
+        setCurrentPage(1);
+        //applyFilters();
+    }, [filters, sortOrder]);
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+
+    const carsToShow = cars
+        .sort((a, b) => {
+            if (sortOrder === 'priceAsc') return a.price - b.price;
+            if (sortOrder === 'priceDesc') return b.price - a.price;
+            return 0;
+        })
+        .slice(startIndex, endIndex);
 
 
     const applyFilters = async () => {
@@ -193,27 +212,30 @@ export const CarsListCatalog = ({ limit }) => {
                         {/* Правая колонка с карточками машин */}
                         <div className="col-12 col-md-9" data-aos="fade-up" data-aos-delay="400">
                             <div className="row gx-2 gy-3">
-                                {cars.length === 0 && (
+                                {carsToShow.length === 0 && (
                                     <p className="text-muted">No cars found for selected filters.</p>
                                 )}
-                                {cars
-                                    .sort((a, b) => {
-                                        if (sortOrder === 'priceAsc') return a.price - b.price;
-                                        if (sortOrder === 'priceDesc') return b.price - a.price;
-                                        return 0;
-                                    })
-                                    .map(car => (
-                                        <div className='col-6 col-md-6 col-lg-4 col-xl-4' key={car.id}>
-                                            <CarCardPattern
-                                                car={car}
-                                                data-aos="fade-up"
-                                                data-aos-delay={`${400 + car.id * 100}`}
-                                            />
-                                        </div>
-                                    ))}
+                                {carsToShow.map(car => (
+                                    <div className='col-6 col-md-6 col-lg-4 col-xl-4' key={car.id}>
+                                        <CarCardPattern
+                                            car={car}
+                                            data-aos="fade-up"
+                                            data-aos-delay={`${400 + car.id * 100}`}
+                                        />
+                                    </div>
+                                ))}
                             </div>
+
+
+                            <Pagination
+                                totalItems={cars.length}
+                                itemsPerPage={itemsPerPage}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                            />
                         </div>
                     </div>
+
                 </div>
             </section >
             <Footer />
