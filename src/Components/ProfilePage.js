@@ -136,9 +136,20 @@ export function ProfilePage() {
   };
 
   const handleSaveClick = () => {
-    setShowModal(true);
+    Swal.fire({
+      title: 'Confirm Changes',
+      text: 'Are you sure you want to save the changes?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, save it!',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        confirmSave();  // вызываешь функцию сохранения
+      }
+    });
   };
-
   const confirmSave = async () => {
     setShowModal(false);
 
@@ -481,13 +492,11 @@ export function ProfilePage() {
                           <i className="bi bi-box-arrow-left me-1"></i> Logout
                         </button>
 
-                        <button
-                          type="button"
-                          className="btn btn-primary px-3 py-2 fw-semibold"
-                          onClick={handleSaveClick}
-                        >
-                          Save changes
+
+                        <button type="button" className="btn btn-primary" onClick={handleSaveClick}>
+                          Save Changes
                         </button>
+
                       </div>
 
 
@@ -640,25 +649,7 @@ export function ProfilePage() {
 
 
           {isLoggingOut && <LoadingOverlay text="Logging out..." />}
-          {showModal && (
-            <div className="modal fade show d-block" tabIndex="-1">
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h5 className="modal-title">Подтвердите изменения</h5>
-                    <button className="btn-close" onClick={() => setShowModal(false)}></button>
-                  </div>
-                  <div className="modal-body">
-                    <p>Вы уверены, что хотите сохранить изменения?</p>
-                  </div>
-                  <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Отмена</button>
-                    <button className="btn btn-primary" onClick={confirmSave}>Да, сохранить</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </main>
     </div>
