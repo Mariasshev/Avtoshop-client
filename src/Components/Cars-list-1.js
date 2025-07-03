@@ -22,7 +22,7 @@ export function CarsList({ limit }) {
 
         AOS.init({
             duration: 1000,
-            once: false,
+            once: true,
             offset: 200,
         });
     }, [limit]);
@@ -34,11 +34,6 @@ export function CarsList({ limit }) {
                 <div className="row pt-3" data-aos="fade-up" data-aos-delay="200">
                     <div className="col-sm-8 col-12 text-sm-start text-center">
                         <h2 className="primary-color dm-sans-bold text-h2">Explore All Vehicles</h2>
-                    </div>
-                    <div className="col-sm-4 col-12 pt-sm-0 pt-3 pb-sm-0 pb-4 text-sm-end text-center">
-                        <Link to="/cars-list">
-                            <p className="ft-18 primary-color dm-sans-medium mb-0 view-all">View All <i className="bi bi-arrow-up-right"></i></p>
-                        </Link>
                     </div>
                 </div>
                 <div className="row">
@@ -67,6 +62,13 @@ export function CarsList({ limit }) {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                    <div className='text-center mt-3'>
+                        <Link to="/cars-list">
+                            <button type="button" className="btn btn-outline-primary dm-sans-medium ft-18">
+                                Show all cars
+                            </button>
+                        </Link>
                     </div>
 
                 </div>

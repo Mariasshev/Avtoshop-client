@@ -255,13 +255,13 @@ export function CarInfo({ car, cars }) {
                   </div>
 
                   <div className="col-12 pb-2">
-                    <span className="ft-16 line-through">${car?.oldPrice?.toLocaleString() || '180,000'}</span>{" "}
+                    {/* <span className="ft-16 line-through">${car?.oldPrice?.toLocaleString() || '180,000'}</span>{" "} */}
                     <span className="h3 dm-sans-bold">${car?.price?.toLocaleString() || '165,000'}</span>
                   </div>
 
-                  <div className="col-12 pb-2">
+                  {/* <div className="col-12 pb-2">
                     <p>Instant Saving: ${car?.instantSaving?.toLocaleString() || '15,000'}</p>
-                  </div>
+                  </div> */}
 
                   <div className="d-grid gap-2 col-11 mx-auto pb-3">
                     <button className="btn btn-primary h55" type="button"><img src={offerIcon} alt="Offer" /> Make An Offer Price</button>
