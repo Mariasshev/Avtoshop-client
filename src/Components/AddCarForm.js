@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useBrandsAndModels } from '../hooks/useBrandsAndModels';
 
 export function AddCarForm() {
   const [formData, setFormData] = useState({
@@ -22,6 +23,8 @@ export function AddCarForm() {
   const [photos, setPhotos] = useState([]);
   const [brands, setBrands] = useState([]);
   const [models, setModels] = useState([]);
+
+  //const { brands, models } = useBrandsAndModels(formData.brand);
 
   // Загрузка брендов при монтировании
   useEffect(() => {
@@ -49,15 +52,15 @@ export function AddCarForm() {
     }
   }, [formData.brand]);
 
-const handleBrandChange = (e) => {
-  const selectedBrandId = e.target.value;
-  console.log('Selected brandId:', selectedBrandId); // добавь лог
-  setFormData(prev => ({
-    ...prev,
-    brand: selectedBrandId,
-    model: '' // сбрасываем модель при смене бренда
-  }));
-};
+  const handleBrandChange = (e) => {
+    const selectedBrandId = e.target.value;
+    console.log('Selected brandId:', selectedBrandId); // добавь лог
+    setFormData(prev => ({
+      ...prev,
+      brand: selectedBrandId,
+      model: '' // сбрасываем модель при смене бренда
+    }));
+  };
 
 
   const handleChange = (e) => {
@@ -74,115 +77,115 @@ const handleBrandChange = (e) => {
 
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  console.log('Submitting formData:', formData); // 🐞 Проверяем данные перед отправкой
+    console.log('Submitting formData:', formData); // 🐞 Проверяем данные перед отправкой
 
-  // Проверка обязательных полей
-  if (!formData.brand || formData.brand === "0") {
-    alert('Please select a brand');
-    console.error('Brand is missing or invalid:', formData.brand); // 🐞
-    return;
-  }
-
-  if (!formData.model || formData.model === "0") {
-    alert('Please select a model');
-    console.error('Model is missing or invalid:', formData.model);
-    return;
-  }
-
-  if (!formData.year) {
-    alert('Please enter the year');
-    console.error('Year is missing');
-    return;
-  }
-
-  if (!formData.price) {
-    alert('Please enter the price');
-    console.error('Price is missing');
-    return;
-  }
-
-  const data = new FormData();
-
-  // Берем выбранные бренд и модель по id
-  const selectedBrand = brands.find(b => b.id.toString() === formData.brand);
-  const selectedModel = models.find(m => m.id.toString() === formData.model);
-
-
-  if (!selectedBrand) {
-    alert('Selected brand not found in brand list');
-    console.error('Brand not found in list:', formData.brand);
-    return;
-  }
-
-  if (!selectedModel) {
-    alert('Selected model not found in model list');
-    console.error('Model not found in list:', formData.model);
-    return;
-  }
-
-  // Добавляем все остальные поля, кроме brand и model
-  Object.entries(formData).forEach(([key, value]) => {
-    if (key !== 'brand' && key !== 'model') {
-      data.append(key, value);
-    }
-  });
-
-  // Добавляем BrandId как число
-  data.append('BrandId', parseInt(formData.brand, 10));
-  // Добавляем название модели
-  data.append('Model', selectedModel.name);
-
-  // Проверка и добавление фото
-  if (photos.length === 0) {
-    alert('Please upload at least one photo');
-    console.error('No photos selected');
-    return;
-  }
-  photos.forEach(photo => data.append('Photos', photo));
-
-  // Логируем, что реально уйдёт на сервер
-  for (let pair of data.entries()) {
-    console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-  }
-
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('You are not authorized. Please log in.');
-      console.error('No auth token found');
+    // Проверка обязательных полей
+    if (!formData.brand || formData.brand === "0") {
+      alert('Please select a brand');
+      console.error('Brand is missing or invalid:', formData.brand); // 
       return;
     }
 
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/add`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: data
+    if (!formData.model || formData.model === "0") {
+      alert('Please select a model');
+      console.error('Model is missing or invalid:', formData.model);
+      return;
+    }
+
+    if (!formData.year) {
+      alert('Please enter the year');
+      console.error('Year is missing');
+      return;
+    }
+
+    if (!formData.price) {
+      alert('Please enter the price');
+      console.error('Price is missing');
+      return;
+    }
+
+    const data = new FormData();
+
+    // Берем выбранные бренд и модель по id
+    const selectedBrand = brands.find(b => b.id.toString() === formData.brand);
+    const selectedModel = models.find(m => m.id.toString() === formData.model);
+
+
+    if (!selectedBrand) {
+      alert('Selected brand not found in brand list');
+      console.error('Brand not found in list:', formData.brand);
+      return;
+    }
+
+    if (!selectedModel) {
+      alert('Selected model not found in model list');
+      console.error('Model not found in list:', formData.model);
+      return;
+    }
+
+    // Добавляем все остальные поля, кроме brand и model
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key !== 'brand' && key !== 'model') {
+        data.append(key, value);
+      }
     });
 
-    if (response.ok) {
-        console.log("Brand "+ formData.brand);
-      alert('Car successfully added!');
-      // Сброс формы
-      setFormData({
-        mileage: '', year: '', transmission: '', fuelType: '',
-        brand: '', model: '', driverType: '', condition: '',
-        engineSize: '', door: '', cylinder: '', color: '',
-        vin: '', price: '', description: '', isOnStock: 1
-      });
-      setPhotos([]);
-      setModels([]);
-    } else {
-      const errorText = await response.text();
-      console.error('Server error:', errorText);
-      alert('Failed to add car: ' + errorText);
+    // Добавляем BrandId как число
+    data.append('BrandId', parseInt(formData.brand, 10));
+    // Добавляем название модели
+    data.append('Model', selectedModel.name);
+
+    // Проверка и добавление фото
+    if (photos.length === 0) {
+      alert('Please upload at least one photo');
+      console.error('No photos selected');
+      return;
     }
-  } catch (error) {
-    console.error('Network error:', error);
-    alert('Network error');
-  }
-};
+    photos.forEach(photo => data.append('Photos', photo));
+
+    // Логируем, что реально уйдёт на сервер
+    for (let pair of data.entries()) {
+      console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You are not authorized. Please log in.');
+        console.error('No auth token found');
+        return;
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/cars/add`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: data
+      });
+
+      if (response.ok) {
+        console.log("Brand " + formData.brand);
+        alert('Car successfully added!');
+        // Сброс формы
+        setFormData({
+          mileage: '', year: '', transmission: '', fuelType: '',
+          brand: '', model: '', driverType: '', condition: '',
+          engineSize: '', door: '', cylinder: '', color: '',
+          vin: '', price: '', description: '', isOnStock: 1
+        });
+        setPhotos([]);
+        setModels([]);
+      } else {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        alert('Failed to add car: ' + errorText);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('Network error');
+    }
+  };
 
 
   return (
@@ -193,11 +196,11 @@ const handleBrandChange = (e) => {
           <div className="col-md-4">
             <label>Brand</label>
             <select name="brand" className="form-select" value={formData.brand} onChange={handleBrandChange}>
-  <option value="">Select brand</option>
-  {brands.map(b => (
-    <option key={b.id} value={b.id}>{b.name}</option>
-  ))}
-</select>
+              <option value="">Select brand</option>
+              {brands.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
 
           </div>
 

@@ -83,6 +83,17 @@
     bottom: -40px !important;
 }
 
+.slider-wrapper .slick-prev {
+    left: -20px;
+    z-index: 1000;
+    /* подвинуть ближе */
+}
+
+.slider-wrapper .slick-next {
+    right: -20px;
+    z-index: 1000;
+}
+
 
 /* классы для цветов текста */
 .primary-color {

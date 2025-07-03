@@ -34,20 +34,21 @@ export function CarCardPattern({ car }) {
 
                 <div className="card-body">
                     <h5 className="card-title ft-18 mb-1 dm-sans-medium primary-color">
-                        {`${car.brand} ${car.model}`}
+                        {car.brand?.name || car.brand || ''} {car.model}
+
                     </h5>
                     <div className="row justify-content-center">
-                        <div className="col-12 col-md-4 d-flex d-md-block align-items-center">
-                            <img src={mileageIcon} alt="Mileage Icon" className="fs-2 me-2 me-md-0" />
-                            <p className="ft-15 mb-0 mb-md-1">{car.mileage} км</p>
+                        <div className="col-12 d-flex align-items-center mb-2">
+                            <img src={mileageIcon} alt="Mileage Icon" className="fs-2 me-2" />
+                            <p className="ft-15 mb-0">{car.mileage} km</p>
                         </div>
-                        <div className="col-12 col-md-4 d-flex d-md-block align-items-center">
-                            <img src={petrolIcon} alt="Fuel Icon" className="fs-2 me-2 me-md-0" />
-                            <p className="ft-15 mb-0 mb-md-1">{car.fuel}</p>
+                        <div className="col-12 d-flex align-items-center mb-2">
+                            <img src={petrolIcon} alt="Fuel Icon" className="fs-2 me-2" />
+                            <p className="ft-15 mb-0">{car.fuel || car.fuelType}</p>
                         </div>
-                        <div className="col-12 col-md-4 d-flex d-md-block align-items-center">
-                            <img src={typeIcon} alt="Transmission Icon" className="fs-2 me-2 me-md-0" />
-                            <p className="ft-15 mb-0 mb-md-1">{car.transmission}</p>
+                        <div className="col-12 d-flex align-items-center">
+                            <img src={typeIcon} alt="Transmission Icon" className="fs-2 me-2" />
+                            <p className="ft-15 mb-0">{car.transmission}</p>
                         </div>
                     </div>
 

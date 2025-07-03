@@ -101,11 +101,11 @@ export function CarInfo({ car, cars }) {
       },
       {
         breakpoint: 768,
-        settings: { slidesToShow: Math.min(slidesToShowNew, 2) }
+        settings: { slidesToShow: Math.min(slidesToShowNew, 2), arrows: false }
       },
       {
         breakpoint: 576,
-        settings: { slidesToShow: 2 }
+        settings: { slidesToShow: 2, arrows: false }
       }
     ]
   };
@@ -123,11 +123,11 @@ export function CarInfo({ car, cars }) {
       },
       {
         breakpoint: 768,
-        settings: { slidesToShow: Math.min(slidesToShowFavorable, 2) }
+        settings: { slidesToShow: Math.min(slidesToShowFavorable, 2), arrows: false }
       },
       {
         breakpoint: 576,
-        settings: { slidesToShow: 2 }
+        settings: { slidesToShow: 2, arrows: false }
       }
     ]
   };
@@ -135,8 +135,8 @@ export function CarInfo({ car, cars }) {
 
   return (
 
-    <section className="">
-      <div className="container py-0 py-md-5">
+    <section className="px-3 px-lg-0">
+      <div className="container-lg py-0 py-md-5">
         <nav aria-label="breadcrumb">
           <ol className="breadcrumb">
             <li className="breadcrumb-item"><a href="#">Home</a></li>
@@ -312,14 +312,14 @@ export function CarInfo({ car, cars }) {
 
       </div>
 
-      <div className="container mb-5 pb-4">
+      <div className="container-lg mb-5 pb-4">
         {/* 1 slider */}
         <div className="row mt-3">
           <div className="col-12">
             <div className="d-flex justify-content-between mb-3">
               <div className="d-flex align-items-center">
                 <h2 className="mb-0">New cars</h2>
-                <div className="ms-2 align-middle d-none d-xl-block align-items-center ">
+                <div className="ms-0 ms-lg-2 align-middle d-none d-xl-block align-items-center ">
                   <button
                     className={`btn btn-sm px-3 rounded-2 ${slidesToShowNew === 4 ? 'btn-secondary' : 'btn-outline-secondary'}`}
                     onClick={() => setSlidesToShowNew(4)}

@@ -14,7 +14,7 @@ import './App.css';
 //import { AuthProvider } from './Components/AuthContext';
 //import {useState } from 'react';
 import { MainPage } from "./Pages/MainPage";
-import { CarsList } from "./Pages/Cars-list";
+import { CarsListCatalog } from "./Pages/Cars-list";
 import { CarCard } from "./Pages/Car-card";
 import { Blog } from "./Pages/Blog";
 import { BlogPage } from "./Pages/blog-page";
@@ -52,7 +52,7 @@ function App() {
                 <Route path="index" element={<MainPage />} />
 
                 {/* Cars-list */}
-                <Route path="cars-list" element={<CarsList />} />
+                <Route path="cars-list" element={<CarsListCatalog />} />
 
                 {/* Car-card */}
                 <Route path="/cars/:id" element={<CarCard />} />
